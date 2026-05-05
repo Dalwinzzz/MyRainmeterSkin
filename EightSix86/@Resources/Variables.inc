@@ -1,4 +1,4 @@
-; ============================================================
+﻿; ============================================================
 ;  86 HUD · Shared Variables
 ;  Included by every skin via:
 ;    [Rainmeter]
@@ -25,6 +25,12 @@ ColorPanel=10,22,38,128
 FontFace=Bahnschrift
 FontFaceLight=Bahnschrift Light
 FontFaceCondensed=Bahnschrift Condensed
+; Microsoft YaHei UI ships with Windows. Used for any Chinese-character text
+; (Bahnschrift has no CJK glyphs, so we fall back to YaHei for those meters).
+FontFaceCN=Microsoft YaHei UI
+; Segoe MDL2 Assets ships with Windows 10/11. Provides reliable HUD glyphs
+; (PrevTrack=E892, PlayPause=E768, NextTrack=E893, etc.)
+FontFaceIcon=Segoe MDL2 Assets
 
 ; ===== Dock launcher target paths =====
 ; Edit these to your own folders / apps.
