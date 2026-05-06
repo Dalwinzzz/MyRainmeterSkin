@@ -7,17 +7,42 @@
 
 [Variables]
 
-; ===== Palette (RGBA, 0-255) =====
-ColorCyan=126,229,245,255
-ColorCyanEdge=126,229,245,242
-ColorCyanDim=126,229,245,115
-ColorCyanDeep=126,229,245,46
-ColorRed=255,82,82,255
-ColorRedDim=255,82,82,217
+; ===== Palette (RGBA, 0-255) — Red Lycoris × Cobalt Blue =====
+; Reference: 86 EIGHTY-SIX — red lycoris field × Republic HUD blue
+; Rule: 红 = focal points / accents / alerts
+;       蓝 = HUD chrome / structure / dividers
+;       中性白 = data values
+
+; --- Reds (彼岸花鲜红 #C81E3A) ---
+ColorRed=200,30,58,255
+ColorRedEdge=200,30,58,242
+ColorRedDim=200,30,58,150
+ColorRedDeep=200,30,58,46
+ColorRedDark=126,20,36,255
+ColorRedLight=232,74,106,255
+ColorRedAlert=160,24,40,255
+
+; --- Blues (钴蓝 #1E5AC8) ---
+ColorBlue=30,90,200,255
+ColorBlueEdge=30,90,200,242
+ColorBlueDim=30,90,200,150
+ColorBlueDeep=30,90,200,46
+ColorBlueDark=20,44,126,255
+ColorBlueLight=74,138,232,255
+ColorBlueIce=93,162,242,255
+
+; --- Aliases — legacy "Cyan*" names retained for backward compatibility,
+;     mapped to Blue* values so existing meter references render as cobalt.
+ColorCyan=30,90,200,255
+ColorCyanEdge=30,90,200,242
+ColorCyanDim=30,90,200,150
+ColorCyanDeep=30,90,200,46
+
+; --- Neutrals ---
 ColorText=245,251,255,255
-ColorTextDim=245,251,255,179
-ColorShadow=0,8,18,242
-ColorPanel=10,22,38,128
+ColorTextDim=184,192,204,242
+ColorShadow=0,5,16,242
+ColorPanel=5,9,18,128
 
 ; ===== Fonts =====
 ; Bahnschrift ships with Windows 10/11 by default.
