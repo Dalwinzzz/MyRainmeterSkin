@@ -56,3 +56,36 @@ macOS 无法运行 Rainmeter，故用 `luac -p`（语法）+ mock SKIN 跑真实
 - [ ] Impact 字体在 DESTROYED 戳上的实际字距（macOS 无法预览，可能需调 FontSize/间距）
 - [ ] ActionTimer 扫描线速度手感（18ms/步，可能偏快或偏慢）
 - [ ] `Segoe UI Symbol` 下 5 档月相字符是否都有字形（◔◕ 在部分字体缺失，缺则回退 ◐）
+
+---
+
+## 迭代 2 · Clock 中央主视觉进场 + 呼吸（v1.2.0）
+
+**动机**：Clock 是整个 HUD 的 signature moment（v1 设计稿明确定义为「中央主视觉」），但实现一直
+是完全静态的——数字直接出现、冒号不闪、没有任何进场。`frontend.md` 第 4 节把 Clock 列为「克制
+科技 / 奢侈极简」脸的核心记忆点，第 5 节强调「一次高质量进场编排 > 到处撒微交互」。本轮给中央
+时钟做最精致的「揭示」。
+
+### 改动（`Clock/Clock.ini`）
+
+| 能力 | 实现 |
+|---|---|
+| 三段式进场 | `mIntro` ActionTimer：ChromeUp(菱形+扫描线 alpha↑) → DigitUp(数字 alpha↑) → MetaUp(日期+编号 alpha↑) |
+| 冒号正弦呼吸 | `mBreathTick`(0..31 自增计数) + `mBreath`(Sin 公式 → BreathAlpha 76..255) 喂 InlineSetting |
+| alpha 分层 | DigitAlpha / ChromeAlpha / MetaAlpha / BreathAlpha 四个独立变量，编排可精确分层 |
+
+**关键技术点**：skin 基准 `Update=125`（8× 时钟速度）驱动平滑呼吸；时间/日期 measure 用
+`DefaultUpdateDivider=8` 回到每秒刷新；呼吸 measure 显式 `UpdateDivider=1` 走 125ms。
+ActionTimer 在独立线程跑自己的 Wait，不受 base tick 影响。
+
+### 验证
+
+- ✅ ini 结构：19 section 无重复，4 个动画变量都在 `[Variables]` 初始化，Formula/Action 括号配对
+- ✅ 呼吸正弦数学（Python）：alpha 76..255 不越界，相邻 125ms 帧最大跳变仅 17/255（丝滑），4s 对称周期
+- 附 `preview/iter2-clock.html` 浏览器预览（含真实走时 + 进场重播）
+
+### Windows 端待人工确认
+
+- [ ] 96px Bahnschrift Light 大数字实际渲染重量
+- [ ] 冒号呼吸手感（4s 周期是否过慢/过快，可调 mBreathTick 模数）
+- [ ] base tick 125ms 对 CPU 的占用（中央时钟常驻，若偏高可放宽到 200ms / 16 步）

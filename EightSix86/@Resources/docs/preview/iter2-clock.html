@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>86 HUD · 迭代2 预览 — Clock 进场编排 + 冒号呼吸</title>
+<style>
+  :root{
+    --blue:#1E5AC8; --blue-edge:rgba(30,90,200,.95); --blue-ice:#5DA2F2;
+    --red:#C81E3A; --text:#f5fbff; --text-dim:#b8c0cc;
+    --shadow:0 0 6px rgba(0,5,16,.95),0 0 1px rgba(0,5,16,.95);
+    --font:"Bahnschrift","Eurostile Extended","Consolas",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);color:var(--text);min-height:100vh;padding:40px;
+    background:
+      radial-gradient(ellipse 35% 25% at 22% 28%, rgba(200,30,58,.18), transparent 70%),
+      radial-gradient(ellipse 40% 30% at 75% 62%, rgba(30,90,200,.20), transparent 70%),
+      linear-gradient(135deg,#16203a 0%,#0a1428 60%,#05080f 100%);}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(135deg,transparent 0 22px,rgba(255,255,255,.02) 22px 23px);}
+  h1{font-size:13px;letter-spacing:4px;color:var(--blue-ice);font-weight:bold;
+     text-transform:uppercase;margin-bottom:6px}
+  .sub{font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:48px}
+
+  /* ===== Clock 复刻 (System.ini 等价: 720×220 画布缩放) ===== */
+  .clock-stage{display:flex;flex-direction:column;align-items:center;gap:60px;margin:40px 0}
+  .clock{position:relative;width:720px;height:220px;
+    filter:drop-shadow(0 0 8px rgba(0,5,16,.95))}
+  .diamond{position:absolute;top:80px;width:18px;height:18px;
+    border:1px solid var(--blue-edge);background:rgba(5,9,18,.5);
+    transform:rotate(45deg);opacity:0}
+  .d-l{left:8px} .d-r{left:694px}
+  .digits{position:absolute;top:30px;left:0;width:720px;text-align:center;
+    font-family:var(--font);font-weight:300;font-size:96px;line-height:140px;
+    color:var(--text);text-shadow:var(--shadow);opacity:0;
+    font-variant-numeric:tabular-nums}
+  .digits .colon{color:var(--red)}
+  .date{position:absolute;top:160px;left:0;width:720px;text-align:center;
+    font-family:"Microsoft YaHei UI",var(--font);font-size:16px;font-weight:bold;
+    text-shadow:var(--shadow);opacity:0}
+  .doy{position:absolute;top:194px;left:160px;font-family:"Microsoft YaHei UI",var(--font);
+    font-size:9px;font-weight:bold;color:var(--blue);text-shadow:var(--shadow);opacity:0}
+  .scan{position:absolute;top:199px;left:290px;width:260px;height:1px;opacity:0;
+    background:linear-gradient(90deg,transparent,var(--blue-edge),transparent)}
+
+  /* 进场编排: chrome -> digits -> meta (与 ActionTimer 三段同序) */
+  .clock.play .diamond{animation:fadein .26s ease forwards}
+  .clock.play .scan{animation:fadein .26s ease forwards}
+  .clock.play .digits{animation:digitup .25s .30s ease forwards}
+  .clock.play .date{animation:fadein .25s .60s ease forwards}
+  .clock.play .doy{animation:fadein .25s .60s ease forwards}
+  @keyframes fadein{to{opacity:1}}
+  @keyframes digitup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  /* 冒号呼吸: 4s 正弦, alpha 0.30..1.0 (与 mBreath 同参数) */
+  .clock.play .colon{animation:breath 4s ease-in-out infinite .55s}
+  @keyframes breath{0%,100%{opacity:.65}25%{opacity:1}75%{opacity:.30}}
+
+  .ctrl{display:flex;gap:10px;margin-top:8px}
+  .ctrl button{font-family:var(--font);font-size:10px;letter-spacing:1px;
+    text-transform:uppercase;color:var(--blue-ice);background:transparent;
+    border:1px solid rgba(30,90,200,.58);padding:7px 14px;cursor:pointer;font-weight:bold}
+  .ctrl button:hover{background:rgba(30,90,200,.18);color:var(--text)}
+  .panel{max-width:720px;margin-top:24px}
+  .panel h2{font-size:11px;letter-spacing:2px;color:var(--blue-ice);
+    text-transform:uppercase;margin-bottom:12px;font-weight:bold}
+  .panel li{font-size:12px;color:var(--text-dim);line-height:1.9;list-style:none;
+    padding-left:16px;position:relative}
+  .panel li::before{content:"▸";position:absolute;left:0;color:var(--blue)}
+  .panel b{color:var(--text)}
+  .note{margin-top:28px;font-size:10px;color:var(--text-dim);letter-spacing:.5px;
+    max-width:720px;line-height:1.7;border-left:2px solid rgba(30,90,200,.58);padding-left:14px}
+</style>
+</head>
+<body>
+  <h1>/ 迭代 2 · Clock 中央主视觉 — 进场编排 + 冒号呼吸</h1>
+  <div class="sub">86 HUD Clock v1.2.0 — signature moment 终于会呼吸了（等价复刻 Clock.ini）</div>
+
+  <div class="clock-stage">
+    <div class="clock play" id="clock">
+      <div class="diamond d-l"></div>
+      <div class="diamond d-r"></div>
+      <div class="digits" id="digits"></div>
+      <div class="date" id="date"></div>
+      <div class="doy" id="doy"></div>
+      <div class="scan"></div>
+    </div>
+    <div class="ctrl">
+      <button onclick="replay()">▷ 重播进场编排</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>本轮让中央时钟「活」起来</h2>
+    <ul>
+      <li><b>三段式进场揭示</b>（ActionTimer）：菱形端点 + 扫描线先亮 → 大数字淡入上浮 → 日期/编号跟进。呼应 86「奢侈极简 · 缓慢优雅揭示」</li>
+      <li><b>冒号正弦呼吸</b>：4s 周期、alpha 0.30→1.0 平滑明暗（替代 v1 生硬的 steps 闪烁）。125ms 驱动，相邻帧跳变仅 17/255，丝滑</li>
+      <li><b>chrome alpha 联动</b>：菱形/扫描线/数字/元信息各自独立 alpha 变量，编排可精确控制层次</li>
+    </ul>
+  </div>
+
+  <div class="note">
+    说明：此 HTML 仅作风格/逻辑预览，<b>不是</b>皮肤本体。真实皮肤是 <b>Clock/Clock.ini</b>：
+    skin 基准 125ms tick 驱动呼吸，时间测量用 UpdateDivider=8 保持每秒刷新；进场用 ActionTimer 三段
+    Repeat（ChromeUp/DigitUp/MetaUp）；冒号 alpha 由 mBreath Calc(Sin) 喂给 InlineSetting。
+    呼吸曲线已用 Python 验证不越界、最大帧跳变 17。Windows 端待确认：96px Bahnschrift Light 实际渲染、
+    呼吸手感、进场速度。
+  </div>
+
+<script>
+function pad(n){return String(n).padStart(2,'0');}
+function tick(){
+  const d=new Date();
+  const h=pad(d.getHours()),m=pad(d.getMinutes()),s=pad(d.getSeconds());
+  document.getElementById('digits').innerHTML=
+    `${h}<span class="colon">:</span>${m}<span class="colon">:</span>${s}`;
+  const wd=['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][d.getDay()];
+  document.getElementById('date').textContent=
+    `${wd}   ·   ${d.getFullYear()}年${pad(d.getMonth()+1)}月${pad(d.getDate())}日`;
+  const start=new Date(d.getFullYear(),0,0);
+  const doy=Math.floor((d-start)/86400000);
+  document.getElementById('doy').textContent=`第 ${doy} 天 / 365`;
+}
+function replay(){const c=document.getElementById('clock');
+  c.classList.remove('play');void c.offsetWidth;c.classList.add('play');}
+setInterval(tick,1000);tick();
+</script>
+</body>
+</html>
