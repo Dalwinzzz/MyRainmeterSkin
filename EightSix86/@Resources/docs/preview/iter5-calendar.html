@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>86 HUD · 迭代5 预览 — Calendar 日期修复 + 年度进度条</title>
+<style>
+  :root{
+    --blue:#1E5AC8; --blue-edge:rgba(30,90,200,.95); --blue-ice:#5DA2F2;
+    --blue-dim:rgba(30,90,200,.58); --blue-deep:rgba(30,90,200,.18);
+    --red:#C81E3A; --text:#f5fbff; --text-dim:#b8c0cc;
+    --shadow:0 0 5px rgba(0,5,16,.95);
+    --font:"Bahnschrift","Eurostile Extended","Consolas",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);color:var(--text);min-height:100vh;padding:40px;
+    background:
+      radial-gradient(ellipse 35% 25% at 22% 28%, rgba(200,30,58,.18), transparent 70%),
+      radial-gradient(ellipse 40% 30% at 75% 62%, rgba(30,90,200,.20), transparent 70%),
+      linear-gradient(135deg,#16203a 0%,#0a1428 60%,#05080f 100%);}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(135deg,transparent 0 22px,rgba(255,255,255,.02) 22px 23px);}
+  h1{font-size:13px;letter-spacing:4px;color:var(--blue-ice);font-weight:bold;
+     text-transform:uppercase;margin-bottom:6px}
+  .sub{font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:36px}
+  .stage{display:flex;gap:60px;flex-wrap:wrap;align-items:flex-start}
+
+  /* ===== Calendar 复刻 (213×155) ===== */
+  .cal{position:relative;width:213px;height:155px;text-shadow:var(--shadow);
+    filter:drop-shadow(0 0 10px rgba(0,5,16,.6))}
+  .head{position:absolute;top:5px;right:0;font-size:10px;font-weight:bold;
+    letter-spacing:1px;color:var(--blue-edge);text-transform:uppercase}
+  .divider{position:absolute;left:0;width:213px;height:1px;background:var(--blue-edge)}
+  .month{position:absolute;text-align:right;font-weight:bold;text-transform:uppercase}
+  .num{position:absolute;font-weight:bold;font-variant-numeric:tabular-nums}
+  .pip{position:absolute;width:0}
+  .dim{color:var(--text-dim)}
+  .m-prev{right:45px;top:30px;font-size:14px} .n-prev{left:185px;top:34px;font-size:15px;color:var(--text-dim)}
+  .p-prev{left:175px;top:36px;height:18px;border-left:1px solid var(--blue-dim)}
+  .m-cur{right:45px;top:54px;font-size:18px;color:var(--text)}
+  .n-cur{left:185px;top:53px;font-size:22px;color:var(--red)}
+  .p-cur{left:175px;top:58px;height:22px;border-left:2px solid var(--red)}
+  .m-next{right:45px;top:84px;font-size:14px} .n-next{left:185px;top:88px;font-size:15px;color:var(--text-dim)}
+  .p-next{left:175px;top:90px;height:18px;border-left:1px solid var(--blue-dim)}
+  .foot-l{position:absolute;left:0;top:126px;font-size:9px;font-weight:bold;
+    color:var(--blue-edge);letter-spacing:1px}
+  .foot-r{position:absolute;right:0;top:126px;font-size:10px;font-weight:bold;
+    color:var(--blue);font-family:"Microsoft YaHei UI",var(--font)}
+  /* 年度进度条 */
+  .yt{position:absolute;left:0;top:146px;width:213px;height:2px;background:var(--blue-deep)}
+  .yf{position:absolute;left:0;top:146px;height:2px;background:var(--red);width:0}
+  .yp{position:absolute;top:143px;width:6px;height:6px;background:var(--red);
+    border:1px solid var(--red);transform:rotate(45deg);box-shadow:0 0 5px rgba(200,30,58,.8)}
+
+  /* 修复前后对比表 */
+  .bug{max-width:520px}
+  .bug h2{font-size:11px;letter-spacing:2px;color:var(--blue-ice);
+    text-transform:uppercase;margin-bottom:12px;font-weight:bold}
+  table{border-collapse:collapse;font-size:11px;width:100%}
+  th,td{padding:5px 9px;text-align:left;border-bottom:1px solid rgba(30,90,200,.2)}
+  th{color:var(--blue-ice);font-size:9px;letter-spacing:1px;text-transform:uppercase}
+  td{color:var(--text-dim);font-variant-numeric:tabular-nums}
+  .ok{color:#5DA2F2} .err{color:var(--red);font-weight:bold}
+  .panel{max-width:520px;margin-top:24px}
+  .panel li{font-size:12px;color:var(--text-dim);line-height:1.9;list-style:none;
+    padding-left:16px;position:relative}
+  .panel li::before{content:"▸";position:absolute;left:0;color:var(--blue)}
+  .panel b{color:var(--text)}
+  .note{margin-top:24px;font-size:10px;color:var(--text-dim);letter-spacing:.5px;
+    max-width:560px;line-height:1.7;border-left:2px solid var(--blue-dim);padding-left:14px}
+</style>
+</head>
+<body>
+  <h1>/ 迭代 5 · Calendar — 日期跨月 bug 修复 + 年度进度条</h1>
+  <div class="sub">86 HUD Calendar v1.2.0 — 修复一个会让上下月显示错乱的真实 bug（等价复刻 Calendar.ini）</div>
+
+  <div class="stage">
+    <div class="cal" id="cal">
+      <div class="head" id="head">/ CHRONOS · WK-24</div>
+      <div class="divider" style="top:28px"></div>
+      <div class="month dim m-prev" id="mprev">MAY</div>
+      <div class="pip p-prev"></div>
+      <div class="num n-prev" id="nprev">05</div>
+      <div class="month m-cur" id="mcur">JUN</div>
+      <div class="pip p-cur"></div>
+      <div class="num n-cur" id="ncur">14</div>
+      <div class="month dim m-next" id="mnext">JUL</div>
+      <div class="pip p-next"></div>
+      <div class="num n-next" id="nnext">07</div>
+      <div class="divider" style="top:118px"></div>
+      <div class="foot-l" id="footl">D-165 / 365</div>
+      <div class="foot-r">▼ 今日</div>
+      <div class="yt"></div>
+      <div class="yf" id="yf"></div>
+      <div class="yp" id="yp"></div>
+    </div>
+
+    <div class="bug">
+      <h2>修复的日期 bug（±30天固定秒数 → 当月15号基准）</h2>
+      <table>
+        <tr><th>当天</th><th>上月应</th><th>旧算法</th><th>下月应</th><th>旧算法</th><th>新算法</th></tr>
+        <tr><td>3月31日</td><td>2月</td><td class="err">3月</td><td>4月</td><td class="ok">4月</td><td class="ok">✅ 全对</td></tr>
+        <tr><td>1月31日</td><td>12月</td><td class="err">1月</td><td>2月</td><td class="err">3月</td><td class="ok">✅ 全对</td></tr>
+        <tr><td>7月1日</td><td>6月</td><td class="ok">6月</td><td>8月</td><td class="err">7月</td><td class="ok">✅ 全对</td></tr>
+        <tr><td>12月31日</td><td>11月</td><td class="err">12月</td><td>1月</td><td class="ok">1月</td><td class="ok">✅ 全对</td></tr>
+      </table>
+      <div style="font-size:10px;color:var(--text-dim);margin-top:8px">
+        旧算法 now−2592000(30天) 在 31 天月份/月初月末错乱：7 个测试日期错 5 个。
+        新算法以当月 15 号正午为基准 ±30 天，从月中跨步必落入相邻月，7/7 全对。
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <li><b>日期 bug 修复</b>：新增 mAnchorTS = now −(day−15)×86400，上下月从月中跨步</li>
+    <li><b>年度进度条</b>：底部 213px 轨 + 红色填充随 day-of-year，焦点菱形 pin 标"今天"（兑现 D-NNN/365 的数据可视化）</li>
+    <li>三行月份 stack / 当日红高亮 / WK 周数 / D-day 全部保留</li>
+  </div>
+
+  <div class="note">
+    说明：此 HTML 仅作风格/逻辑预览，<b>不是</b>皮肤本体。真实皮肤是 <b>Calendar/Calendar.ini</b>：
+    mAnchorTS Calc 修复跨月；4 个上下月 measure 改用 [mAnchorTS]±2592000；年度进度 mYearFill =
+    213×doy/365 驱动 Shape 线宽 + pin X。日期修复与进度映射已 Python 全边界验证。
+    Windows 端待确认：进度条在 155px 画布底部不被裁切、pin 对齐。
+  </div>
+
+<script>
+function pad(n){return String(n).padStart(2,'0');}
+function mon(m){return ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][m];}
+function render(){
+  const d=new Date();
+  const y=d.getFullYear(),m=d.getMonth();
+  // 修复算法: 当月15号基准
+  const anchor=new Date(y,m,15,12);
+  const prev=new Date(anchor.getTime()-2592000000);
+  const next=new Date(anchor.getTime()+2592000000);
+  document.getElementById('mprev').textContent=mon(prev.getMonth());
+  document.getElementById('nprev').textContent=pad(prev.getMonth()+1);
+  document.getElementById('mcur').textContent=mon(m);
+  document.getElementById('ncur').textContent=pad(d.getDate());
+  document.getElementById('mnext').textContent=mon(next.getMonth());
+  document.getElementById('nnext').textContent=pad(next.getMonth()+1);
+  const start=new Date(y,0,0);
+  const doy=Math.floor((d-start)/86400000);
+  document.getElementById('footl').textContent=`D-${doy} / 365`;
+  const week=Math.ceil(doy/7);
+  document.getElementById('head').textContent=`/ CHRONOS · WK-${week}`;
+  const fill=213*doy/365;
+  document.getElementById('yf').style.width=fill+'px';
+  document.getElementById('yp').style.left=(fill-3)+'px';
+}
+render();setInterval(render,60000);
+</script>
+</body>
+</html>
