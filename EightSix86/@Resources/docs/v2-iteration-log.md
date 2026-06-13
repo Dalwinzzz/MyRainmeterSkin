@@ -183,3 +183,49 @@ ActionTimer 在独立线程跑自己的 Wait，不受 base tick 影响。
 
 - [ ] 年度进度条在 155px 画布底部不被裁切（Y=146 + 2px，pin Y=143）
 - [ ] `TimeStamp` measure 配 Calc `[mAnchorTS]` 在 Rainmeter 实际能正确解析（DynamicVariables 已开）
+
+---
+
+## 迭代 6 · Search 双引擎 hover + 整合交付（v1.2.0 · 最后一轮）
+
+**动机**：Search 是唯一还没做 hover 的核心交互组件——Music（轮3）、Dock（轮4）都有了，
+Search 的输入框 / dispatch 按钮悬停却毫无反馈，是套件内的交互一致性缺口。同时这是 6 轮里
+的最后一轮，需要把整套主题**整合成可交付状态**（`frontend.md` 执行流程第 7 步「交付」）。
+
+### 改动
+
+| 文件 | 改动 |
+|---|---|
+| `SearchGoogle/SearchGoogle.ini` | 输入框 hit-area + dispatch hit-area 加 `MouseOver/LeaveAction` hover |
+| `SearchBing/SearchBing.ini` | 镜像同步同样的 hover（两文件交互一致） |
+| `@Resources/docs/install.md` | **新增** 完整安装指南（Rainmeter / 组件加载 / WNP 音乐源 / 字体 / 路径配置 / 排错） |
+| `README.md` | 重写：整套组件总览 + 快速开始 + 预览稿索引 + 设计哲学 |
+
+**hover 设计**：输入框 hover → 边框 + 下划线 蓝边变亮蓝、填充加深（提示字段激活）；
+dispatch（焦点红按钮）hover → 红填充加深 + 描边亮红。与 Music/Dock 的 hover 语言统一。
+
+### 验证
+
+- ✅ 两 Search 文件各 23 section 无重复，各 2 对 MouseOver/Leave，action 方括号引号配对正确
+- ✅ 引用颜色变量全在 Variables.inc 定义
+- 附 `preview/iter6-search.html`（Google + Bing 双条，真实 hover）
+
+---
+
+## 6 轮迭代总结
+
+| 轮 | 组件 | 核心 | commit |
+|---|---|---|---|
+| 1 | System Roster | 数据驱动月相/趋势/状态 + DESTROYED 戳 + 扫描进场 | 874e876 |
+| 2 | Clock | 三段进场编排 + 冒号正弦呼吸 | 695fdc4 |
+| 3 | Music | 进度 pin 跟随 + 状态图标 + 控件 hover | 2ffda0f |
+| 4 | Dock | 5 个人 mark hover（上移+变亮+角括号） | 7b66f46 |
+| 5 | Calendar | 修复上下月跨月 bug + 年度进度条 | 833a031 |
+| 6 | Search + 交付 | 双引擎 hover + install.md + README | （本轮） |
+
+**整套主题现状**：6 个核心组件交互风格统一（数据驱动 + 进场编排 + hover 微交互），
+配色统一「红彼岸花 × 钴蓝」，全部经 macOS 端静态校验（ini 结构 / Lua luac+mock / 数学 Python）。
+Windows 端首次安装预览的待确认项已分散记录在各轮「Windows 端待人工确认」小节。
+
+**验证方法论**（macOS 无法跑 Rainmeter）：每轮用 `luac -p` + mock SKIN 跑真实 lua、
+Python 验证数学映射与边界、Python 校验 ini 结构与变量闭环，并产出浏览器预览稿供人工验收。

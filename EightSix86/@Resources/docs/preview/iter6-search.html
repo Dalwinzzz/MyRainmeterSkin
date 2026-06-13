@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>86 HUD · 迭代6 预览 — Search 双引擎 hover 微交互</title>
+<style>
+  :root{
+    --blue:#1E5AC8; --blue-edge:rgba(30,90,200,.95); --blue-ice:#5DA2F2;
+    --red:#C81E3A; --red-light:#E84A6A; --text:#f5fbff; --text-dim:#b8c0cc;
+    --shadow:0 0 5px rgba(0,5,16,.95);
+    --font:"Bahnschrift","Eurostile Extended","Consolas",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);color:var(--text);min-height:100vh;padding:40px;
+    background:
+      radial-gradient(ellipse 35% 25% at 22% 28%, rgba(200,30,58,.18), transparent 70%),
+      radial-gradient(ellipse 40% 30% at 75% 62%, rgba(30,90,200,.20), transparent 70%),
+      linear-gradient(135deg,#16203a 0%,#0a1428 60%,#05080f 100%);}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(135deg,transparent 0 22px,rgba(255,255,255,.02) 22px 23px);}
+  h1{font-size:13px;letter-spacing:4px;color:var(--blue-ice);font-weight:bold;
+     text-transform:uppercase;margin-bottom:6px}
+  .sub{font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:40px}
+
+  /* ===== Search 复刻 (540×40) ===== */
+  .search{position:relative;width:540px;height:40px;margin:14px 0;
+    filter:drop-shadow(0 0 8px rgba(0,5,16,.5))}
+  .corner{position:absolute;width:11px;height:11px;border:1px solid var(--blue-edge)}
+  .c-tl{top:0;left:0;border-right:0;border-bottom:0}
+  .c-tr{top:0;right:0;border-left:0;border-bottom:0}
+  .c-bl{bottom:0;left:0;border-right:0;border-top:0}
+  .c-br{bottom:0;right:0;border-left:0;border-top:0}
+  .glyph-box{position:absolute;left:18px;top:11px;width:20px;height:20px;
+    border:1px solid var(--blue-edge);display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:bold;color:var(--blue-edge);text-shadow:var(--shadow)}
+  .name{position:absolute;left:46px;top:14px;font-size:9px;font-weight:bold;
+    letter-spacing:1px;color:var(--blue);text-transform:uppercase;text-shadow:var(--shadow)}
+  .arrow{position:absolute;left:110px;top:14px;font-size:10px;font-weight:bold;
+    color:var(--blue);text-shadow:var(--shadow)}
+  .input-box{position:absolute;left:126px;top:8px;width:322px;height:24px;
+    border:1px solid var(--blue-edge);background:rgba(10,22,38,.31);
+    transition:all .15s ease;cursor:text}
+  .input-line{position:absolute;left:128px;top:32px;width:318px;height:1px;
+    background:var(--blue-edge);transition:all .15s ease}
+  .placeholder{position:absolute;left:134px;top:13px;font-size:11px;color:var(--text-dim);
+    font-family:"Microsoft YaHei UI",var(--font);pointer-events:none;text-shadow:var(--shadow)}
+  .input-box:hover{border-color:var(--blue-ice);background:rgba(10,22,38,.55)}
+  .input-box:hover ~ .input-line{border-color:var(--blue-ice);height:1.4px;background:var(--blue-ice)}
+  .dispatch{position:absolute;left:458px;top:8px;width:74px;height:24px;
+    border:1px solid var(--red);background:rgba(200,30,58,.18);
+    display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:bold;
+    color:var(--red);font-family:"Microsoft YaHei UI",var(--font);cursor:pointer;
+    transition:all .15s ease;text-shadow:var(--shadow)}
+  .dispatch:hover{border-color:var(--red-light);background:rgba(200,30,58,.43);color:var(--red-light)}
+
+  .panel{max-width:540px;margin-top:36px}
+  .panel h2{font-size:11px;letter-spacing:2px;color:var(--blue-ice);
+    text-transform:uppercase;margin-bottom:12px;font-weight:bold}
+  .panel li{font-size:12px;color:var(--text-dim);line-height:1.9;list-style:none;
+    padding-left:16px;position:relative}
+  .panel li::before{content:"▸";position:absolute;left:0;color:var(--blue)}
+  .panel b{color:var(--text)}
+  .note{margin-top:24px;font-size:10px;color:var(--text-dim);letter-spacing:.5px;
+    max-width:560px;line-height:1.7;border-left:2px solid rgba(30,90,200,.58);padding-left:14px}
+  .hint{font-size:11px;color:var(--blue-ice);margin:8px 0 20px}
+</style>
+</head>
+<body>
+  <h1>/ 迭代 6 · Search 双引擎 — hover 微交互（最后一轮 + 整合交付）</h1>
+  <div class="sub">86 HUD Search v1.2.0 — 与 Music/Dock 一致的 hover 反馈（鼠标悬停输入框 / 执行键）</div>
+
+  <div class="hint">↓ hover 输入框看边框+下划线变亮，hover「执行」键看红色加深</div>
+
+  <!-- Google -->
+  <div class="search">
+    <div class="corner c-tl"></div><div class="corner c-tr"></div>
+    <div class="corner c-bl"></div><div class="corner c-br"></div>
+    <div class="glyph-box">G</div>
+    <div class="name">GOOGLE</div>
+    <div class="arrow">&gt;&gt;</div>
+    <div class="input-box"></div>
+    <div class="input-line"></div>
+    <div class="placeholder">点击此处搜索 · google.com</div>
+    <div class="dispatch">执行 ⏎</div>
+  </div>
+
+  <!-- Bing -->
+  <div class="search">
+    <div class="corner c-tl"></div><div class="corner c-tr"></div>
+    <div class="corner c-bl"></div><div class="corner c-br"></div>
+    <div class="glyph-box">B</div>
+    <div class="name">BING</div>
+    <div class="arrow">&gt;&gt;</div>
+    <div class="input-box"></div>
+    <div class="input-line"></div>
+    <div class="placeholder">点击此处搜索 · bing.com</div>
+    <div class="dispatch">执行 ⏎</div>
+  </div>
+
+  <div class="panel">
+    <h2>本轮：Search hover + 全套交付整合</h2>
+    <ul>
+      <li><b>输入框 hover</b>：边框 蓝边→亮蓝、填充加深、下划线变粗变亮，提示"字段已激活"</li>
+      <li><b>执行键 hover</b>：焦点红按钮，hover 红填充加深 + 描边变亮红</li>
+      <li><b>Google / Bing 双引擎</b>：两文件镜像同步改造，交互一致</li>
+      <li><b>交付整合</b>：新写 install.md 安装指南 + 重写 README，明早可直接照着装</li>
+    </ul>
+  </div>
+
+  <div class="note">
+    说明：此 HTML 仅作风格/逻辑预览，<b>不是</b>皮肤本体。真实皮肤是
+    <b>SearchGoogle/SearchGoogle.ini</b> 与 <b>SearchBing/SearchBing.ini</b>：
+    输入框 / dispatch 的 Image hit-area 加 MouseOver/LeaveAction !SetOption Shape 切换描边与填充。
+    至此 6 轮迭代全部完成，整套主题（Clock/System/Calendar/Search/Music/Dock）交互风格统一。
+    安装见 docs/install.md。
+  </div>
+</body>
+</html>
