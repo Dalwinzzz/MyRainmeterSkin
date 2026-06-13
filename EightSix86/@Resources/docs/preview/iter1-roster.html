@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>86 HUD · 迭代1 预览 — System Roster 数据驱动</title>
+<style>
+  :root{
+    /* 当前 Variables.inc 真实配色：红彼岸花 × 钴蓝 */
+    --blue:#1E5AC8; --blue-edge:rgba(30,90,200,.95); --blue-dim:rgba(30,90,200,.58);
+    --blue-deep:rgba(30,90,200,.18); --blue-ice:#5DA2F2;
+    --red:#C81E3A; --red-edge:rgba(200,30,58,.95); --red-dim:rgba(200,30,58,.6);
+    --text:#f5fbff; --text-dim:#b8c0cc;
+    --shadow:0 0 4px rgba(0,5,16,.95),0 0 1px rgba(0,5,16,.95);
+    --font:"Bahnschrift","Eurostile Extended","Consolas","Trebuchet MS",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:var(--font); color:var(--text); min-height:100vh; padding:40px;
+    background:
+      radial-gradient(ellipse 35% 25% at 22% 28%, rgba(200,30,58,.18), transparent 70%),
+      radial-gradient(ellipse 40% 30% at 75% 62%, rgba(30,90,200,.20), transparent 70%),
+      linear-gradient(135deg,#16203a 0%,#0a1428 60%,#05080f 100%);
+  }
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(135deg,transparent 0 22px,rgba(255,255,255,.02) 22px 23px);}
+  h1{font-size:13px;letter-spacing:4px;color:var(--blue-ice);font-weight:bold;
+     text-transform:uppercase;margin-bottom:6px}
+  .sub{font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:28px}
+  .stage{display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start}
+
+  /* ============ System Roster (复刻 System.ini 布局，340×178) ============ */
+  .roster{position:relative;width:340px;height:178px;text-shadow:var(--shadow);
+    filter:drop-shadow(0 0 10px rgba(0,5,16,.6))}
+  .corner{position:absolute;width:12px;height:12px;border:1px solid var(--blue-edge)}
+  .c-tl{top:0;left:0;border-right:0;border-bottom:0}
+  .c-tr{top:0;right:0;border-left:0;border-bottom:0}
+  .c-bl{bottom:0;left:0;border-right:0;border-top:0}
+  .c-br{bottom:0;right:0;border-left:0;border-top:0}
+  .r-head{position:absolute;top:11px;left:14px;font-size:9px;letter-spacing:2px;
+    font-weight:bold;text-transform:uppercase}
+  .r-stat{position:absolute;top:11px;right:14px;font-size:9px;letter-spacing:2px;
+    font-weight:bold;color:var(--blue);text-transform:uppercase}
+  .div{position:absolute;left:14px;width:312px;height:1px}
+  .div1{top:31px;background:var(--blue-edge)}
+  .div2{top:49px;background:var(--blue-dim)}
+  .colhead{position:absolute;top:36px;font-size:7px;letter-spacing:1px;
+    color:var(--blue-edge);font-weight:bold;text-transform:uppercase}
+  .row{position:absolute;left:0;width:340px;height:22px;display:flex;align-items:center}
+  .sep{position:absolute;left:14px;width:312px;height:1px;background:var(--blue-deep)}
+  .cell{position:absolute;font-weight:bold}
+  .c-num{left:14px;font-size:8px;color:var(--blue-edge)}
+  .c-lbl{left:46px;font-size:9px;text-transform:uppercase}
+  .c-pwr{left:172px;width:24px;text-align:center;font-size:11px;color:var(--blue-edge)}
+  .c-val{left:196px;width:36px;text-align:center;font-size:10px;color:var(--blue)}
+  .c-rate{left:238px;width:24px;text-align:center;font-size:9px;color:var(--text-dim)}
+  .c-sta{left:268px;width:18px;text-align:center;font-size:9px;color:var(--blue-edge)}
+  .alert .c-pwr,.alert .c-sta{color:var(--red)}
+  .up{color:var(--blue-ice)} .down{color:var(--blue-dim)}
+  /* DESTROYED 戳 */
+  .destroyed{position:absolute;left:120px;width:200px;text-align:center;
+    font-family:Impact,"Arial Black",sans-serif;font-size:14px;letter-spacing:2px;
+    color:var(--red);transform:skewX(-8deg);text-shadow:0 0 6px rgba(200,30,58,.7),var(--shadow);
+    display:none}
+  .alert .destroyed{display:block} .alert .c-val{display:none}
+
+  /* 扫描线进场 */
+  .scan{position:absolute;left:14px;width:312px;height:2px;
+    background:linear-gradient(90deg,transparent,var(--blue-edge),transparent);
+    box-shadow:0 0 8px var(--blue-edge);opacity:0}
+  .rows{opacity:0}
+  .roster.playing .scan{animation:sweep 1.2s steps(18) forwards}
+  .roster.playing .rows{animation:online .01s 1.2s forwards}
+  @keyframes sweep{
+    0%{opacity:1;top:36px} 92%{opacity:1;top:172px} 100%{opacity:0;top:172px}}
+  @keyframes online{to{opacity:1}}
+
+  .panel{max-width:340px}
+  .panel h2{font-size:11px;letter-spacing:2px;color:var(--blue-ice);
+    text-transform:uppercase;margin-bottom:12px;font-weight:bold}
+  .panel li{font-size:12px;color:var(--text-dim);line-height:1.9;list-style:none;
+    padding-left:16px;position:relative}
+  .panel li::before{content:"▸";position:absolute;left:0;color:var(--blue)}
+  .panel b{color:var(--text)} .panel .r{color:var(--red-edge)}
+  .ctrl{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap}
+  .ctrl button{font-family:var(--font);font-size:10px;letter-spacing:1px;
+    text-transform:uppercase;color:var(--blue-ice);background:transparent;
+    border:1px solid var(--blue-dim);padding:7px 12px;cursor:pointer;font-weight:bold}
+  .ctrl button:hover{background:var(--blue-deep);color:var(--text)}
+  .note{margin-top:28px;font-size:10px;color:var(--text-dim);letter-spacing:.5px;
+    max-width:740px;line-height:1.7;border-left:2px solid var(--blue-dim);padding-left:14px}
+</style>
+</head>
+<body>
+  <h1>/ 迭代 1 · System Roster 数据驱动化</h1>
+  <div class="sub">86 HUD v1.2.0 — 浏览器预览（macOS 无法跑 Rainmeter，此页等价复刻 System.ini + Roster.lua 的视觉与逻辑）</div>
+
+  <div class="stage">
+    <div class="roster playing" id="roster">
+      <div class="corner c-tl"></div><div class="corner c-tr"></div>
+      <div class="corner c-bl"></div><div class="corner c-br"></div>
+      <div class="r-head">/ S-1 · SYSTEM ROSTER</div>
+      <div class="r-stat">▼ ONLINE</div>
+      <div class="div div1"></div><div class="div div2"></div>
+      <div class="colhead" style="left:24px">NO</div>
+      <div class="colhead" style="left:46px">PERS</div>
+      <div class="colhead" style="left:176px">PWR</div>
+      <div class="colhead" style="left:206px">VAL</div>
+      <div class="colhead" style="left:240px">RATE</div>
+      <div class="colhead" style="left:270px">STA</div>
+
+      <div class="scan" id="scan"></div>
+
+      <div class="rows" id="rows">
+        <!-- 行由 JS 生成，模拟 Roster.lua 的实时映射 -->
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>本轮让名册「活」起来</h2>
+      <ul>
+        <li><b>PWR 月相</b> 5 档 ○◔◑◕● 随负载实时跳动</li>
+        <li><b>RATE 趋势</b> 与上秒差分 <span class="up">▲</span> / <span class="down">▼</span> / ──</li>
+        <li><b>STA 状态</b> 越阈值自动 <span class="r">变红</span>告警</li>
+        <li><b>DESTROYED 戳</b> 网络断流 30s 整行盖红戳</li>
+        <li><b>进场扫描</b> 开机一道蓝线扫过 → 名册整体上线</li>
+      </ul>
+      <div class="ctrl">
+        <button onclick="replay()">▷ 重播进场</button>
+        <button onclick="spike()">⚡ 模拟 CPU 飙到 96%</button>
+        <button onclick="killnet()">✕ 模拟断网</button>
+        <button onclick="reset()">↺ 恢复</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    说明：此 HTML 仅作风格 / 逻辑预览，<b>不是</b>皮肤本体。真实皮肤是 <b>System/System.ini</b>（Rainmeter meter）
+    + <b>@Resources/Scripts/Roster.lua</b>（数据驱动）。两者已用 <b>luac -p</b> + mock SKIN 跑真实 lua 解释器双重验证逻辑正确。
+    Windows 端待人工确认：Impact 字距、扫描速度手感、Segoe UI Symbol 的 ◔◕ 字形覆盖。
+  </div>
+
+<script>
+const ROWS=[
+  {no:'001',lbl:'CPU LOAD',val:()=>state.cpu,fmt:v=>v+'%',alert:90},
+  {no:'002',lbl:'MEM USE', val:()=>state.mem,fmt:v=>v+'%',alert:90},
+  {no:'003',lbl:'DSK C:\\',val:()=>state.dsk,fmt:v=>v+'%',alert:85},
+  {no:'004',lbl:'NET DOWN',val:()=>state.netin,fmt:v=>fmtNet(v),alert:Infinity,flat:true},
+  {no:'005',lbl:'NET UP',  val:()=>state.netout,fmt:v=>fmtNet(v),alert:Infinity},
+];
+const MOON=['○','◔','◑','◕','●'];
+let state={cpu:24,mem:43,dsk:67,netin:480000,netout:96000,netdead:false};
+let prev={}, deadct=0;
+function fmtNet(b){return b<1024?b+'B':b<1048576?(b/1024).toFixed(0)+'K':(b/1048576).toFixed(1)+'M';}
+function moonFor(p){return MOON[Math.max(0,Math.min(4,Math.floor(p/20)))];}
+
+const rowsEl=document.getElementById('rows');
+ROWS.forEach((r,i)=>{
+  const y=58+i*22;
+  const el=document.createElement('div');
+  el.className='row'; el.style.top=y+'px'; el.id='row'+i;
+  el.innerHTML=`<span class="cell c-num">${r.no}</span>
+    <span class="cell c-lbl">${r.lbl}</span>
+    <span class="cell c-pwr">◐</span>
+    <span class="cell c-val">--</span>
+    <span class="cell c-rate">──</span>
+    <span class="cell c-sta">●</span>
+    <span class="destroyed">D E S T R O Y E D</span>`;
+  rowsEl.appendChild(el);
+  if(i<4){const s=document.createElement('div');s.className='sep';s.style.top=(76+i*22)+'px';rowsEl.appendChild(s);}
+});
+
+function tick(){
+  // 随机游走模拟真实负载
+  state.cpu=clamp(state.cpu+rnd(-8,8),2,state.cpuMax||78);
+  state.mem=clamp(state.mem+rnd(-3,3),20,88);
+  state.netin=state.netdead?rnd(0,30):clamp(state.netin+rnd(-2e5,2e5),5e4,9e5);
+  state.netout=clamp(state.netout+rnd(-4e4,4e4),1e4,3e5);
+  ROWS.forEach((r,i)=>{
+    const el=document.getElementById('row'+i);
+    const v=r.val();
+    const pct=r.flat?Math.min(v/10485.76,100):v;
+    el.querySelector('.c-pwr').textContent=moonFor(pct);
+    el.querySelector('.c-val').textContent=r.fmt(v);
+    // 趋势
+    const rate=el.querySelector('.c-rate'); const p=prev[i];
+    rate.className='cell c-rate';
+    if(p!=null){const d=v-p, thr=r.flat?1024:1;
+      if(d>thr){rate.textContent='▲';rate.classList.add('up');}
+      else if(d<-thr){rate.textContent='▼';rate.classList.add('down');}
+      else rate.textContent='──';}
+    prev[i]=v;
+    // 告警 / DESTROYED
+    let alert=false;
+    if(r.flat){ if(v<64)deadct++; else deadct=0; if(deadct>=3)alert=true; }
+    else if(pct>=r.alert) alert=true;
+    el.classList.toggle('alert',alert);
+  });
+}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function rnd(a,b){return a+Math.random()*(b-a);}
+
+function replay(){const r=document.getElementById('roster');r.classList.remove('playing');
+  void r.offsetWidth;r.classList.add('playing');}
+function spike(){state.cpuMax=99;state.cpu=96;}
+function killnet(){state.netdead=true;}
+function reset(){state.cpuMax=78;state.cpu=24;state.netdead=false;deadct=0;}
+
+setInterval(tick,1000); tick();
+</script>
+</body>
+</html>
