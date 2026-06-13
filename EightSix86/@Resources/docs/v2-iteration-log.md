@@ -120,3 +120,35 @@ ActionTimer 在独立线程跑自己的 Wait，不受 base tick 影响。
 - [ ] WebNowPlaying 插件 + SMTC adapter 已装（否则无数据，pin 停在 0）
 - [ ] `Segoe UI Symbol` 的 ⏸⏵⏮⏭ 字形（缺则改用 `Segoe MDL2 Assets` 的 E768/E769）
 - [ ] hover 反馈手感（box 填充 alpha 90/130 是否过强）
+
+---
+
+## 迭代 4 · Dock 个人 mark hover 反馈（v1.1.0）
+
+**动机**：Dock 的 5 个 Spearhead 个人 mark（Shape 绘制的送葬人/黑犬/笑狐/银蛇/雪魔女）视觉个性
+很强，但 v1 设计 6.6 节明确承诺的 **hover 反馈**（上移 3px / mark 变亮 / 角括号 tick 浮现）一直没
+实现，悬停毫无反馈。`frontend.md` 第 8 节「作品集/创意站」：个人徽记正是可以放飞、给足交互的地方。
+本轮兑现这个承诺。
+
+### 改动（`Dock/Dock.ini`）
+
+| 能力 | 实现 |
+|---|---|
+| mark 描边变量化 | 每个 mark 的所有 `Stroke/Fill Color` 抽成局部变量 `#L*Mk#`（默认蓝边 / BIN 暗红） |
+| hover 上移 | mark Y 用 `#L*Ty#`，MouseOver 4→1（−3px lift），MouseLeave 还原 |
+| 角括号 tick | 新增 5 个 `mtrL*Tick`（60×60 四角），alpha `#L*Tk#` hover 0→255 浮现 |
+| hover 变色 | MouseOver mark → `ColorText`（纯白），BIN → `ColorRedLight`（亮红）；MouseLeave 还原 |
+| 编组重绘 | 每 launcher 的 mark+tick+label+code 归入 `g1..g5`，hover 一次 `!UpdateMeterGroup` |
+
+### 验证
+
+- ✅ ini 结构：28 section 无重复，5 mark 全变量化（0 处残留旧硬编码色），各有 tick + 3 成员组
+- ✅ 15 个 hover state 变量（L1-5 × Mk/Ty/Tk）全在 `[Variables]` 初始化
+- ✅ 10 个 MouseOver/Leave action 方括号引号配对正确，引用颜色变量全已定义
+- 附 `preview/iter4-dock.html`（5 mark SVG + 真实 hover 上移/变白/tick 浮现）
+
+### Windows 端待人工确认
+
+- [ ] hover 上移 3px 手感（Rainmeter Shape 整体 Y 偏移是否顺滑，无过渡是瞬变）
+- [ ] mark 描边变纯白的对比度（深色壁纸 OK，浅色壁纸可能过曝）
+- [ ] tick 60×60 框与各 mark 实际对齐（mark 绘制坐标略有差异）

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>86 HUD · 迭代4 预览 — Dock 个人mark hover反馈</title>
+<style>
+  :root{
+    --blue:#1E5AC8; --blue-edge:rgba(30,90,200,.95); --blue-ice:#5DA2F2;
+    --red:#C81E3A; --red-dim:rgba(200,30,58,.6); --red-light:#E84A6A;
+    --text:#f5fbff; --text-dim:#b8c0cc;
+    --shadow:0 0 5px rgba(0,5,16,.95);
+    --font:"Bahnschrift","Eurostile Extended","Consolas",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);color:var(--text);min-height:100vh;padding:40px;
+    background:
+      radial-gradient(ellipse 35% 25% at 22% 28%, rgba(200,30,58,.18), transparent 70%),
+      radial-gradient(ellipse 40% 30% at 75% 62%, rgba(30,90,200,.20), transparent 70%),
+      linear-gradient(135deg,#16203a 0%,#0a1428 60%,#05080f 100%);}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(135deg,transparent 0 22px,rgba(255,255,255,.02) 22px 23px);}
+  h1{font-size:13px;letter-spacing:4px;color:var(--blue-ice);font-weight:bold;
+     text-transform:uppercase;margin-bottom:6px}
+  .sub{font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:40px}
+
+  /* ===== Dock 复刻 (460×90) ===== */
+  .dock{position:relative;width:460px;height:90px;margin:30px 0;display:flex}
+  .launcher{position:relative;width:60px;height:90px;margin-right:22px;
+    display:flex;flex-direction:column;align-items:center;cursor:pointer;
+    transition:transform .15s ease}
+  .launcher:last-child{margin-right:0}
+  .launcher:nth-child(1){margin-left:10px}
+  .mark{width:52px;height:52px;margin-top:4px;transition:all .15s ease;
+    filter:drop-shadow(0 0 3px rgba(0,5,16,.8))}
+  .mark svg{width:100%;height:100%;overflow:visible}
+  .mark path,.mark circle,.mark ellipse,.mark line{
+    stroke:var(--blue-edge);transition:stroke .15s ease,fill .15s ease}
+  .mark .fillc{fill:var(--blue-edge)}
+  .lbl{font-size:8px;font-weight:bold;letter-spacing:1px;color:var(--blue-edge);
+    text-transform:uppercase;text-shadow:var(--shadow);margin-top:4px}
+  .code{font-size:7px;font-weight:bold;letter-spacing:.5px;color:var(--text-dim);
+    text-transform:uppercase;text-shadow:var(--shadow);margin-top:2px}
+  /* 角括号 tick */
+  .tick{position:absolute;top:0;left:0;width:60px;height:60px;opacity:0;
+    transition:opacity .15s ease;pointer-events:none}
+  .tick i{position:absolute;width:7px;height:7px;border:1px solid var(--blue-edge)}
+  .tick .t1{top:0;left:0;border-right:0;border-bottom:0}
+  .tick .t2{top:0;right:0;border-left:0;border-bottom:0}
+  .tick .t3{bottom:0;left:0;border-right:0;border-top:0}
+  .tick .t4{bottom:0;right:0;border-left:0;border-top:0}
+  /* hover: 整体上移3px, mark 描边变亮(白), tick 浮现 */
+  .launcher:hover{transform:translateY(-3px)}
+  .launcher:hover .mark path,.launcher:hover .mark circle,
+  .launcher:hover .mark ellipse,.launcher:hover .mark line{stroke:var(--text)}
+  .launcher:hover .mark .fillc{fill:var(--text)}
+  .launcher:hover .mark{filter:drop-shadow(0 0 6px rgba(30,90,200,.9))}
+  .launcher:hover .tick{opacity:1}
+  /* BIN = 红色系 */
+  .bin .mark path,.bin .mark circle,.bin .mark ellipse,.bin .mark line{stroke:var(--red-dim)}
+  .bin .mark .fillc{fill:var(--red-dim)}
+  .bin .lbl,.bin .code{color:var(--red-dim)}
+  .bin .tick i{border-color:var(--red-dim)}
+  .bin:hover .mark path,.bin:hover .mark circle,.bin:hover .mark ellipse{stroke:var(--red-light)}
+  .bin:hover .mark .fillc{fill:var(--red-light)}
+  .bin:hover .mark{filter:drop-shadow(0 0 6px rgba(200,30,58,.9))}
+
+  .panel{max-width:460px;margin-top:36px}
+  .panel h2{font-size:11px;letter-spacing:2px;color:var(--blue-ice);
+    text-transform:uppercase;margin-bottom:12px;font-weight:bold}
+  .panel li{font-size:12px;color:var(--text-dim);line-height:1.9;list-style:none;
+    padding-left:16px;position:relative}
+  .panel li::before{content:"▸";position:absolute;left:0;color:var(--blue)}
+  .panel b{color:var(--text)}
+  .note{margin-top:24px;font-size:10px;color:var(--text-dim);letter-spacing:.5px;
+    max-width:560px;line-height:1.7;border-left:2px solid rgba(30,90,200,.58);padding-left:14px}
+</style>
+</head>
+<body>
+  <h1>/ 迭代 4 · Dock — Spearhead 个人 mark hover 反馈</h1>
+  <div class="sub">86 HUD Dock v1.1.0 — 兑现 v1 设计承诺的 hover（鼠标悬停每个徽记看反馈）</div>
+
+  <div class="dock" id="dock"></div>
+
+  <div class="panel">
+    <h2>本轮兑现 v1 设计的 Dock hover</h2>
+    <ul>
+      <li><b>整体上移 3px</b>：MouseOver 时 mark Y 偏移 4→1（launcher 轻浮起）</li>
+      <li><b>描边变亮</b>：每个 mark 描边色抽成 #L*Mk# 局部变量，hover 从蓝边 → 纯白（BIN 从暗红 → 亮红）</li>
+      <li><b>4 角括号 tick 浮现</b>：#L*Tk# alpha 0→255，悬停时四角浮现锁定框</li>
+      <li><b>glow 加强</b>：drop-shadow 蓝/红辉光增强</li>
+      <li>5 个 Spearhead 徽记：UNDERTAKER 送葬人 / BLACK DOG 黑犬 / LAUGHING FOX 笑狐 / GUN SNAKE 银蛇 / SNOW WITCH 雪魔女（红）</li>
+    </ul>
+  </div>
+
+  <div class="note">
+    说明：此 HTML 仅作风格/逻辑预览，<b>不是</b>皮肤本体。真实皮肤是 <b>Dock/Dock.ini</b>：
+    每个 mark 描边色 #L*Mk#、Y 偏移 #L*Ty#、tick alpha #L*Tk# 三个局部变量；MouseOver/LeaveAction
+    用 !SetVariable + !UpdateMeterGroup 切换。SVG 个人 mark 由 Shape meter 多 path 组合绘制（v1 占位，
+    后续可换精修 PNG）。已 Python 校验 5 mark 全变量化、各有 tick、组成员正确。Windows 端待确认：
+    hover 上移手感、描边变白的对比度。
+  </div>
+
+<script>
+// 5 个 mark 的简化 SVG（与 Dock.ini Shape path 同构）
+const MARKS={
+ dev:`<svg viewBox="0 0 52 52"><ellipse cx="26" cy="22" rx="11" ry="13" fill="none" stroke-width="1.4"/>
+   <ellipse class="fillc" cx="22" cy="21" rx="2" ry="3" stroke="none"/><ellipse class="fillc" cx="30" cy="21" rx="2" ry="3" stroke="none"/>
+   <path class="fillc" d="M24,28 L26,26 L28,28 Z" stroke="none"/>
+   <path d="M20,33 L20,36 M23,33 L23,36 M26,33 L26,36 M29,33 L29,36 M32,33 L32,36" fill="none" stroke-width="1"/>
+   <path d="M42,8 L46,12 L44,14 L42,40 L46,44 L42,46 L38,44 L40,40 L38,14 L36,12 Z" stroke-width="1.2" fill="rgba(30,90,200,.3)"/></svg>`,
+ doc:`<svg viewBox="0 0 52 52"><path d="M26,8 L18,14 L14,22 L16,40 L26,46 L36,40 L38,22 L34,14 Z" stroke-width="1.4" fill="rgba(30,90,200,.15)"/>
+   <path d="M18,14 L16,4 L22,12 Z" stroke-width="1.4" fill="rgba(30,90,200,.3)"/><path d="M34,14 L36,4 L30,12 Z" stroke-width="1.4" fill="rgba(30,90,200,.3)"/>
+   <path d="M18,24 L22,24 M30,24 L34,24" stroke-width="1.6"/><path d="M26,30 L26,38 M22,34 L30,34" stroke-width="1.2"/>
+   <ellipse class="fillc" cx="26" cy="30" rx="2" ry="1.4" stroke="none"/><path d="M23,38 L24,42 L25,38 M27,38 L28,42 L29,38" stroke-width="1" fill="rgba(30,90,200,.6)"/></svg>`,
+ game:`<svg viewBox="0 0 52 52"><path d="M26,8 L14,14 L8,10 L12,22 L14,34 L26,42 L38,34 L40,22 L44,10 L38,14 Z" stroke-width="1.4" fill="rgba(30,90,200,.15)"/>
+   <path class="fillc" d="M16,22 L22,20 L22,24 Z" stroke="none"/><path class="fillc" d="M36,22 L30,20 L30,24 Z" stroke="none"/>
+   <path d="M13,28 Q18,33 26,33 Q34,33 39,28" stroke-width="1.5" fill="none"/><circle class="fillc" cx="26" cy="26" r="1.2" stroke="none"/></svg>`,
+ media:`<svg viewBox="0 0 52 52"><path d="M8,38 Q4,30 12,18 Q22,18 28,22 Q32,30 16,38" stroke-width="1.6" fill="none"/>
+   <ellipse class="fillc" cx="22" cy="26" rx="3" ry="2" stroke="none"/><path d="M22,24 L18,22 M22,24 L20,20" stroke-width="0.8"/>
+   <path d="M32,16 L44,12 L44,14 L32,18 Z" stroke-width="1.2" fill="rgba(30,90,200,.3)"/>
+   <path d="M30,18 L26,24 L28,26 L32,22 Z" stroke-width="1.2" fill="rgba(30,90,200,.3)"/><circle cx="32" cy="20" r="2" stroke-width="1" fill="none"/></svg>`,
+ bin:`<svg viewBox="0 0 52 52"><path d="M26,4 L16,22 L36,22 Z" stroke-width="1.4" fill="rgba(200,30,58,.3)"/>
+   <path class="fillc" d="M14,22 L38,22 L38,26 L14,26 Z" stroke="none" style="fill:rgba(200,30,58,.47)"/>
+   <ellipse cx="26" cy="34" rx="10" ry="11" stroke-width="1.4" fill="none"/>
+   <ellipse class="fillc" cx="22" cy="32" rx="2" ry="2.6" stroke="none"/><ellipse class="fillc" cx="30" cy="32" rx="2" ry="2.6" stroke="none"/>
+   <path class="fillc" d="M25,38 L26,36 L27,38 Z" stroke="none"/>
+   <path d="M20,42 L21,44 M23,42 L23,45 M26,42 L26,45 M29,42 L29,45 M32,42 L31,44" stroke-width="0.9"/>
+   <path d="M26,12 L26,16 M24,14 L28,14" stroke-width="0.8"/></svg>`
+};
+const L=[['dev','DEV','UNDERTAKER',''],['doc','DOC','BLACK DOG',''],['game','GAME','LAUGHING FOX',''],
+         ['media','MEDIA','GUN SNAKE',''],['bin','BIN','SNOW WITCH','bin']];
+document.getElementById('dock').innerHTML=L.map(([k,lbl,code,cls])=>
+  `<div class="launcher ${cls}"><div class="tick"><i class="t1"></i><i class="t2"></i><i class="t3"></i><i class="t4"></i></div>
+   <div class="mark">${MARKS[k]}</div><div class="lbl">${lbl}</div><div class="code">${code}</div></div>`).join('');
+</script>
+</body>
+</html>
