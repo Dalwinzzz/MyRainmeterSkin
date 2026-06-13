@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>86 HUD · 迭代3 预览 — Music 进度跟随 + 控件微交互</title>
+<style>
+  :root{
+    --blue:#1E5AC8; --blue-edge:rgba(30,90,200,.95); --blue-ice:#5DA2F2;
+    --blue-deep:rgba(30,90,200,.18);
+    --red:#C81E3A; --red-light:#E84A6A; --text:#f5fbff; --text-dim:#b8c0cc;
+    --shadow:0 0 5px rgba(0,5,16,.95),0 0 1px rgba(0,5,16,.95);
+    --font:"Bahnschrift","Eurostile Extended","Consolas",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);color:var(--text);min-height:100vh;padding:40px;
+    background:
+      radial-gradient(ellipse 35% 25% at 22% 28%, rgba(200,30,58,.18), transparent 70%),
+      radial-gradient(ellipse 40% 30% at 75% 62%, rgba(30,90,200,.20), transparent 70%),
+      linear-gradient(135deg,#16203a 0%,#0a1428 60%,#05080f 100%);}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(135deg,transparent 0 22px,rgba(255,255,255,.02) 22px 23px);}
+  h1{font-size:13px;letter-spacing:4px;color:var(--blue-ice);font-weight:bold;
+     text-transform:uppercase;margin-bottom:6px}
+  .sub{font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:40px}
+
+  /* ===== Music 复刻 (540×100) ===== */
+  .music{position:relative;width:540px;height:100px;margin:24px 0;
+    filter:drop-shadow(0 0 10px rgba(0,5,16,.6))}
+  .corner{position:absolute;width:12px;height:12px;border:1px solid var(--blue-edge)}
+  .c-tl{top:0;left:0;border-right:0;border-bottom:0}
+  .c-tr{top:0;right:0;border-left:0;border-bottom:0}
+  .c-bl{bottom:0;left:0;border-right:0;border-top:0}
+  .c-br{bottom:0;right:0;border-left:0;border-top:0}
+  .scan{position:absolute;top:4px;left:14px;width:512px;height:2px;
+    background:linear-gradient(90deg,var(--blue-edge),transparent);
+    background-size:200% 100%;animation:flow 3s linear infinite}
+  @keyframes flow{from{background-position:200% 0}to{background-position:0 0}}
+  .head{position:absolute;top:9px;left:18px;font-size:9px;font-weight:bold;
+    color:var(--blue-edge);text-shadow:var(--shadow)}
+  .src{position:absolute;top:9px;right:18px;font-size:8px;font-weight:bold;
+    letter-spacing:2px;color:var(--blue);text-shadow:var(--shadow)}
+  .track{position:absolute;top:24px;left:18px;width:300px;font-size:13px;
+    font-weight:bold;text-shadow:var(--shadow);font-family:"Microsoft YaHei UI",var(--font);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .artist{position:absolute;top:50px;left:18px;font-size:10px;color:var(--text-dim);
+    text-shadow:var(--shadow);font-family:"Microsoft YaHei UI",var(--font)}
+  .time{position:absolute;top:50px;left:222px;font-size:10px;font-weight:bold;
+    color:var(--blue);text-shadow:var(--shadow);font-variant-numeric:tabular-nums}
+  .time .sep{color:rgba(30,90,200,.58)} .time .dur{color:var(--text-dim)}
+  /* 进度条 + 跟随 pin */
+  .track-bg{position:absolute;top:72px;left:18px;width:304px;height:3px;
+    background:var(--blue-deep)}
+  .fill{position:absolute;top:72px;left:18px;height:3px;background:var(--red);width:0}
+  .pin{position:absolute;top:70px;width:7px;height:7px;background:var(--red);
+    border:1px solid var(--red);transform:rotate(45deg);
+    box-shadow:0 0 6px rgba(200,30,58,.8);left:15px}
+  /* 控件 */
+  .btn{position:absolute;top:42px;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-family:"Segoe UI Symbol";transition:all .15s ease}
+  .prev{left:386px;width:30px;height:24px;border:1px solid var(--blue-edge);
+    border-radius:3px;background:rgba(30,90,200,.12);color:var(--blue-edge);font-size:14px}
+  .next{left:462px;width:30px;height:24px;border:1px solid var(--blue-edge);
+    border-radius:3px;background:rgba(30,90,200,.12);color:var(--blue-edge);font-size:14px}
+  .play{left:422px;top:40px;width:34px;height:28px;border:1.4px solid var(--red);
+    border-radius:4px;background:rgba(200,30,58,.27);color:var(--red);font-size:18px}
+  .prev:hover,.next:hover{border-color:var(--blue-ice);background:rgba(30,90,200,.35);
+    color:var(--text);transform:translateY(-1px)}
+  .play:hover{border-color:var(--red-light);background:rgba(200,30,58,.51);
+    transform:translateY(-1px)}
+
+  .ctrl{display:flex;gap:10px;margin-top:20px;align-items:center}
+  .ctrl button{font-family:var(--font);font-size:10px;letter-spacing:1px;
+    text-transform:uppercase;color:var(--blue-ice);background:transparent;
+    border:1px solid rgba(30,90,200,.58);padding:7px 14px;cursor:pointer;font-weight:bold}
+  .ctrl button:hover{background:rgba(30,90,200,.18);color:var(--text)}
+  .ctrl span{font-size:11px;color:var(--text-dim)}
+  .panel{max-width:540px;margin-top:28px}
+  .panel h2{font-size:11px;letter-spacing:2px;color:var(--blue-ice);
+    text-transform:uppercase;margin-bottom:12px;font-weight:bold}
+  .panel li{font-size:12px;color:var(--text-dim);line-height:1.9;list-style:none;
+    padding-left:16px;position:relative}
+  .panel li::before{content:"▸";position:absolute;left:0;color:var(--blue)}
+  .panel b{color:var(--text)}
+  .note{margin-top:24px;font-size:10px;color:var(--text-dim);letter-spacing:.5px;
+    max-width:560px;line-height:1.7;border-left:2px solid rgba(30,90,200,.58);padding-left:14px}
+</style>
+</head>
+<body>
+  <h1>/ 迭代 3 · Music Player — 进度跟随 + 控件微交互</h1>
+  <div class="sub">86 HUD Music v1.2.0 — 修复"pin 永远停最右"的硬伤 + hover 反馈（等价复刻 Music.ini）</div>
+
+  <div class="music" id="music">
+    <div class="corner c-tl"></div><div class="corner c-tr"></div>
+    <div class="corner c-bl"></div><div class="corner c-br"></div>
+    <div class="scan"></div>
+    <div class="head" id="head">▶ 正在播放</div>
+    <div class="src">WNP</div>
+    <div class="track">86 ED「Avid」— 麻枝准</div>
+    <div class="artist">SawanoHiroyuki[nZk]</div>
+    <div class="time"><span id="pos">01:24</span> <span class="sep">/</span> <span class="dur" id="dur">03:47</span></div>
+    <div class="track-bg"></div>
+    <div class="fill" id="fill"></div>
+    <div class="pin" id="pin"></div>
+    <div class="btn prev">⏮</div>
+    <div class="btn play" id="play">⏸</div>
+    <div class="btn next">⏭</div>
+  </div>
+
+  <div class="ctrl">
+    <button onclick="toggle()">⏯ 切换播放/暂停</button>
+    <span id="hint">进度条正在走 — 注意菱形 pin 跟随填充头；hover 三个控件看高亮反馈</span>
+  </div>
+
+  <div class="panel">
+    <h2>本轮修复 + 增强 Music</h2>
+    <ul>
+      <li><b>进度 pin 跟随</b>（修复硬伤）：菱形 pin 由 mPinX = 18 + progress/100×304 驱动，随填充头滑动（原来死死停在最右端 X=326）</li>
+      <li><b>状态图标切换</b>：mPlayGlyph IfCondition 监听 state，播放显示 <b>⏸</b>、暂停/停止显示 <b>⏵</b></li>
+      <li><b>控件 hover 微交互</b>：三个按钮 MouseOver/Leave 切换 box 描边+填充+图标色；Play 为焦点红、hover 红色加深</li>
+      <li><b>scan stripe 流动</b>：顶部高光条横向流动，强化"在播放"的活体感</li>
+    </ul>
+  </div>
+
+  <div class="note">
+    说明：此 HTML 仅作风格/逻辑预览，<b>不是</b>皮肤本体。真实皮肤是 <b>Music/Music.ini</b>：
+    pin X 用 Calc measure mPinX 绑定 <code>X=([mPinX]-3)</code>（DynamicVariables）；图标用
+    mPlayGlyph IfCondition；hover 用 Image hit-area 的 MouseOver/LeaveAction !SetOption Shape。
+    pin 映射已 Python 验证 0%→X18 / 100%→X322 与进度条两端精确对齐。Windows 端待确认：
+    WebNowPlaying 插件已装、Segoe UI Symbol 的 ⏸⏵⏮⏭ 字形、hover 手感。
+  </div>
+
+<script>
+let pos=84, dur=227, playing=true; // 1:24 / 3:47
+function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function render(){
+  const p=pos/dur;
+  document.getElementById('fill').style.width=(p*304)+'px';
+  document.getElementById('pin').style.left=(15+p*304)+'px'; // 18-3 起点
+  document.getElementById('pos').textContent=fmt(pos);
+  document.getElementById('play').textContent=playing?'⏸':'⏵';
+  document.getElementById('head').textContent=playing?'▶ 正在播放':'❚❚ 已暂停';
+}
+function toggle(){playing=!playing;render();}
+setInterval(()=>{if(playing){pos=(pos+1)%dur;render();}},1000);
+render();
+</script>
+</body>
+</html>

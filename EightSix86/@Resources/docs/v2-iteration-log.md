@@ -89,3 +89,34 @@ ActionTimer 在独立线程跑自己的 Wait，不受 base tick 影响。
 - [ ] 96px Bahnschrift Light 大数字实际渲染重量
 - [ ] 冒号呼吸手感（4s 周期是否过慢/过快，可调 mBreathTick 模数）
 - [ ] base tick 125ms 对 CPU 的占用（中央时钟常驻，若偏高可放宽到 200ms / 16 步）
+
+---
+
+## 迭代 3 · Music Player 进度跟随 + 微交互（v1.2.0）
+
+**动机**：Music 组件布局完整，但有个真实硬伤——进度菱形 pin 死死钉在最右端 X=326 不动
+（`mtrProgressBar` Bar 会填充，但 pin 不跟随），视觉上「进度条在走、pin 不动」很穿帮。
+另外 v1 设计承诺的「控件 hover 高亮」「播放/暂停图标切换」都没实现。
+本轮补齐这些「signature moment 要真」的细节（`frontend.md` 第 3 节）。
+
+### 改动（`Music/Music.ini`）
+
+| 能力 | 实现 |
+|---|---|
+| 进度 pin 跟随（修复） | 新增 `mPinX` Calc = `18 + progress/100×304`，pin `X=([mPinX]-3)` 绑定 |
+| 播放/暂停图标 | 新增 `mPlayGlyph` Calc，`IfCondition(state=1)` 切 `⏸`/`⏵` |
+| 控件 hover 微交互 | 三个 hit-area 加 `MouseOver/LeaveAction`，`!SetOption Shape` 改 box 描边+填充、icon 变色 |
+| Play 焦点反馈 | Play 按钮 hover 用 `ColorRedLight` 加深红填充（焦点强调） |
+
+### 验证
+
+- ✅ ini 结构：41 section 无重复，引用的 10 个颜色变量全在 Variables.inc 定义
+- ✅ pin 映射（Python）：0%→X18、100%→X322，与进度条左右端（18 / 18+304）精确对齐，中心偏差 0.5px
+- ✅ 三按钮 hover action / IfCondition 图标切换 方括号引号配对正确
+- 附 `preview/iter3-music.html`（进度真实走 + pin 跟随 + hover + 播放切换）
+
+### Windows 端待人工确认
+
+- [ ] WebNowPlaying 插件 + SMTC adapter 已装（否则无数据，pin 停在 0）
+- [ ] `Segoe UI Symbol` 的 ⏸⏵⏮⏭ 字形（缺则改用 `Segoe MDL2 Assets` 的 E768/E769）
+- [ ] hover 反馈手感（box 填充 alpha 90/130 是否过强）
