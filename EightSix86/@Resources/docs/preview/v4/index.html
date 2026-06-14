@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EIGHTY-SIX · 雨滴主题 v4 预览</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700;800&family=Chakra+Petch:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   EIGHTY-SIX · 设计系统 v4 (冻结的 design tokens)
+   脸: 瑞士国际主义 × 军用制式
+   v4 改动: 透明可调毛玻璃底 / 时钟纯白 / Dock 改机体机徽
+   配色锚点(pixiv 86): 冷蓝钢蓝 + 银白 统治, 暖色仅徽章金/猩红点缀
+   ============================================================ */
+:root{
+  /* --- 核心 5 色板 (透明叠暗壁纸版) --- */
+  --ice:     #dbe9fb;   /* 冰蓝白 (主文字/雷娜银白) */
+  --steel:   #6fa8e0;   /* 钢蓝 (主色,线条/编号/强调蓝) */
+  --steel-d: #3f6fa0;   /* 深钢蓝 */
+  --mist:    #8da6c4;   /* 雾蓝灰 (次要文字) */
+  --crimson: #ff3b3b;   /* 猩红 (唯一暖强调 — CRITICAL/当前) */
+  --gold:    #e8b94a;   /* 徽章金 (军衔点缀,极少量) */
+
+  /* --- 毛玻璃面板 (可调透明度) --- */
+  --glass-opacity: .26;                              /* ★ 面板底不透明度,可调 */
+  --glass: rgba(14, 26, 44, var(--glass-opacity));   /* 暗蓝玻璃底 */
+  --glass-hi: rgba(120,170,230,.10);                 /* 玻璃高光 */
+  --stroke: rgba(140,185,235,.34);                   /* 面板描边 */
+  --stroke-hot: rgba(255,90,80,.55);
+
+  /* --- 派生 --- */
+  --line:   rgba(140,185,235,.16);
+  --line-2: rgba(140,185,235,.34);
+  --glow:   rgba(120,180,240,.6);
+
+  /* --- 间距 4/8 栅格 --- */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px;
+
+  /* --- 字体 --- */
+  --f-display:'Oxanium','Chakra Petch',sans-serif;
+  --f-mono:'Chakra Petch','Oxanium',monospace;
+  --f-cjk:'Noto Sans SC',sans-serif;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:var(--f-mono);color:var(--ice);
+  background:#05080e;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+}
+
+/* ============================================================
+   桌面舞台 — 暗色二次元壁纸 (适配透明毛玻璃组件)
+   ============================================================ */
+.stage{
+  position:relative;width:100%;min-height:100vh;overflow:hidden;
+  background:
+    radial-gradient(120% 90% at 78% 18%, rgba(120,170,230,.22), transparent 45%),
+    radial-gradient(100% 80% at 22% 90%, rgba(40,70,120,.4), transparent 50%),
+    linear-gradient(160deg, #0a1424 0%, #112138 40%, #16263f 70%, #0d1a2c 100%);
+}
+/* 壁纸氛围: 远处银白人物剪影光晕 (示意雷娜) */
+.stage .wp-figure{
+  position:absolute;right:6%;top:8%;width:34vw;height:84vh;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(60% 40% at 50% 28%, rgba(219,233,251,.16), transparent 60%),
+    radial-gradient(40% 50% at 55% 55%, rgba(150,190,235,.12), transparent 65%);
+  filter:blur(8px);
+}
+/* 雨丝 */
+.stage::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+  background-image:repeating-linear-gradient(102deg, transparent 0 9px, rgba(200,225,255,.05) 9px 10px);
+  opacity:.6;mix-blend-mode:screen;animation:rain 7s linear infinite;
+}
+@keyframes rain{from{background-position:0 0}to{background-position:-140px 800px}}
+/* 暗角 */
+.stage::after{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+  background:radial-gradient(150% 120% at 50% 35%, transparent 50%, rgba(0,0,0,.5));
+}
+/* 全局坐标网格 (battle_field DNA) */
+.stage-grid{
+  position:absolute;inset:0;pointer-events:none;z-index:1;opacity:.07;
+  background-image:
+    linear-gradient(rgba(150,200,255,.7) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(150,200,255,.7) 1px, transparent 1px);
+  background-size:52px 52px;
+}
+
+/* ============================================================
+   通用毛玻璃面板 — 军用制式: 切角 + 编号头 + 角括号
+   ============================================================ */
+.panel{
+  position:absolute;z-index:5;
+  background:linear-gradient(180deg, var(--glass-hi), transparent 40%), var(--glass);
+  border:1px solid var(--stroke);
+  backdrop-filter:blur(16px) saturate(1.25);
+  -webkit-backdrop-filter:blur(16px) saturate(1.25);
+  box-shadow:0 12px 48px rgba(0,8,20,.5), inset 0 1px 0 rgba(180,215,255,.15);
+  clip-path:polygon(0 11px, 11px 0, 100% 0, 100% calc(100% - 11px), calc(100% - 11px) 100%, 0 100%);
+}
+.p-head{
+  display:flex;align-items:center;gap:var(--s2);padding:7px var(--s3);
+  border-bottom:1px solid var(--line-2);
+  background:linear-gradient(90deg, rgba(111,168,224,.14), transparent 70%);
+}
+.p-head .tag{
+  font-family:var(--f-display);font-weight:700;font-size:10px;letter-spacing:.12em;
+  color:#08121f;background:var(--steel);padding:2px 7px;
+  clip-path:polygon(0 0,100% 0,100% 100%,4px 100%,0 calc(100% - 4px));
+}
+.p-head .tag.hot{background:var(--crimson);color:#fff}
+.p-head .ttl{
+  font-family:var(--f-display);font-weight:600;font-size:11px;letter-spacing:.24em;
+  color:var(--ice);text-transform:uppercase;
+}
+.p-head .sub{margin-left:auto;font-size:9px;letter-spacing:.18em;color:var(--mist);font-weight:500}
+.p-body{padding:var(--s3)}
+/* HUD 角括号 */
+.corner{position:absolute;width:10px;height:10px;border:1.5px solid var(--steel);z-index:6;opacity:.7}
+.corner.tl{top:3px;left:3px;border-right:0;border-bottom:0}
+.corner.br{bottom:3px;right:3px;border-left:0;border-top:0}
+
+/* ============================================================
+   1 · 硬件状态 — SYSTEM ROSTER (花名册, 86 核心界面)
+   ============================================================ */
+#roster{top:28px;left:28px;width:438px}
+.roster-table{width:100%;border-collapse:collapse;font-family:var(--f-mono)}
+.roster-table th{
+  font-size:8.5px;font-weight:600;letter-spacing:.1em;color:var(--steel);
+  text-align:left;padding:3px 6px;text-transform:uppercase;border-bottom:1px solid var(--line-2);
+}
+.roster-table th.num,.roster-table td.num{text-align:right;font-variant-numeric:tabular-nums}
+.roster-table td{
+  font-size:11px;padding:6px;color:var(--ice);border-bottom:1px solid var(--line);font-weight:500;
+}
+.roster-table tr td:first-child{
+  font-family:var(--f-display);font-weight:700;color:var(--steel);font-size:10px;width:34px;
+}
+.rt-name{font-family:var(--f-display);font-weight:600;letter-spacing:.04em}
+.rt-val{font-family:var(--f-display);font-weight:700;font-variant-numeric:tabular-nums;font-size:12px}
+.rt-unit{font-size:8px;color:var(--mist);font-weight:400;margin-left:1px}
+.bar{position:relative;height:5px;background:rgba(140,185,235,.16);border-radius:1px;overflow:hidden;min-width:56px}
+.bar > i{position:absolute;inset:0;width:var(--w,40%);background:linear-gradient(90deg,var(--steel-d),var(--steel));box-shadow:0 0 8px var(--glow)}
+.bar.warn > i{background:linear-gradient(90deg,#a02020,var(--crimson));box-shadow:0 0 10px rgba(255,59,59,.6)}
+.up{color:var(--steel)} .down{color:var(--crimson)}
+.arrow{font-size:9px}
+/* signature: 阵亡行斜压猩红 */
+.row-dead td{color:rgba(219,233,251,.32)}
+.row-dead{position:relative}
+.destroyed{
+  position:absolute;left:46px;top:50%;transform:translateY(-50%) skewX(-12deg);
+  font-family:var(--f-display);font-weight:800;font-size:13px;letter-spacing:.3em;
+  color:var(--crimson);opacity:.95;text-shadow:0 0 14px rgba(255,59,59,.6);
+  pointer-events:none;white-space:nowrap;
+}
+
+/* ============================================================
+   2 · 时钟 — CHRONOS (中央 signature, 字体纯白)
+   ============================================================ */
+#clock{top:47%;left:50%;transform:translate(-50%,-50%);width:640px;text-align:center;
+  background:none;border:0;box-shadow:none;backdrop-filter:none;clip-path:none;z-index:8}
+#clock::before{
+  content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:560px;height:236px;z-index:-1;pointer-events:none;
+  border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);
+  background:
+    linear-gradient(90deg, transparent, rgba(120,180,240,.06) 50%, transparent),
+    repeating-linear-gradient(0deg, transparent 0 5px, rgba(120,180,240,.04) 5px 6px);
+}
+.clock-meta{
+  display:flex;align-items:center;justify-content:center;gap:var(--s3);
+  font-family:var(--f-display);font-size:10px;letter-spacing:.42em;color:var(--ice);
+  text-transform:uppercase;margin-bottom:var(--s3);text-shadow:0 1px 8px rgba(0,0,0,.6);opacity:.92;
+}
+.clock-meta .mark{width:5px;height:5px;background:var(--crimson);transform:rotate(45deg);box-shadow:0 0 8px var(--crimson)}
+.clock-meta .ln{width:64px;height:1px;background:linear-gradient(90deg,transparent,var(--ice),transparent);opacity:.6}
+/* 时钟数字: 全部纯白, 冒号也是白(去多色) */
+.time{
+  font-family:var(--f-display);font-weight:300;font-size:146px;line-height:.86;
+  color:#fff;letter-spacing:.005em;font-variant-numeric:tabular-nums;
+  text-shadow:0 2px 50px rgba(120,170,230,.5),0 0 2px rgba(255,255,255,.5);
+}
+.time .sep{color:#fff;opacity:.85;margin:0 4px;animation:blink 2s steps(1) infinite}
+@keyframes blink{50%{opacity:.3}}
+.time .sec{font-size:48px;font-weight:400;color:rgba(255,255,255,.7);vertical-align:super;letter-spacing:.04em}
+.clock-sub{margin-top:var(--s4);display:flex;align-items:center;justify-content:center;gap:var(--s5);font-family:var(--f-display);letter-spacing:.16em}
+.clock-sub .date{font-size:14px;color:var(--ice);font-weight:500;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.clock-sub .cjk{font-family:var(--f-cjk);font-size:12px;color:var(--mist);letter-spacing:.3em}
+.clock-status{
+  margin-top:var(--s4);display:inline-flex;align-items:center;gap:var(--s2);
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.28em;color:var(--mist);
+  border:1px solid var(--line-2);padding:4px 13px;
+  clip-path:polygon(0 0,100% 0,100% 100%,6px 100%,0 calc(100% - 6px));
+}
+.clock-status .dot{width:5px;height:5px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80}
+
+/* ============================================================
+   3 · 日历 — CALENDAR (透明毛玻璃)
+   ============================================================ */
+#calendar{top:28px;right:28px;width:304px}
+.cal-top{display:flex;align-items:baseline;gap:var(--s2);margin-bottom:var(--s3)}
+.cal-mon{font-family:var(--f-display);font-weight:800;font-size:34px;color:var(--ice);line-height:1;letter-spacing:.02em}
+.cal-yr{font-family:var(--f-display);font-size:12px;color:var(--mist);letter-spacing:.2em;font-weight:600}
+.cal-cjk{margin-left:auto;font-family:var(--f-cjk);font-size:11px;color:var(--steel);letter-spacing:.2em;align-self:center}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-grid .wk{font-size:8px;text-align:center;color:var(--mist);font-weight:600;letter-spacing:.05em;padding-bottom:3px}
+.cal-grid .wk.sun{color:var(--crimson)}
+.cal-grid .d{font-family:var(--f-display);font-size:11px;text-align:center;padding:4px 0;color:var(--ice);font-variant-numeric:tabular-nums;font-weight:500;position:relative}
+.cal-grid .d.dim{color:rgba(219,233,251,.26)}
+.cal-grid .d.today{color:#fff;font-weight:700}
+.cal-grid .d.today::before{
+  content:"";position:absolute;inset:1px 3px;background:var(--crimson);z-index:-1;
+  clip-path:polygon(0 0,100% 0,100% 100%,4px 100%,0 calc(100% - 4px));box-shadow:0 0 12px rgba(255,59,59,.55);
+}
+.year-bar{margin-top:var(--s4);padding-top:var(--s3);border-top:1px solid var(--line)}
+.year-bar .lbl{display:flex;justify-content:space-between;font-size:8.5px;color:var(--steel);letter-spacing:.1em;margin-bottom:5px;font-weight:600}
+.year-bar .track{height:4px;background:rgba(140,185,235,.16);position:relative;overflow:hidden}
+.year-bar .track > i{position:absolute;inset:0;width:45%;background:linear-gradient(90deg,var(--steel-d),var(--steel));box-shadow:0 0 6px var(--glow)}
+.year-bar .track > i::after{content:"";position:absolute;right:-1px;top:-2px;width:2px;height:8px;background:var(--crimson);box-shadow:0 0 6px var(--crimson)}
+
+/* ============================================================
+   4 · 音乐歌词 — MEDIA / PARA-RAID (透明毛玻璃)
+   ============================================================ */
+#music{bottom:28px;left:28px;width:438px}
+.mu-top{display:flex;gap:var(--s3);align-items:center;margin-bottom:var(--s3)}
+.mu-cover{
+  width:56px;height:56px;flex:none;position:relative;
+  background:linear-gradient(135deg,var(--steel-d),#1a3252);
+  clip-path:polygon(0 9px,9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%);
+  display:flex;align-items:center;justify-content:center;
+}
+.mu-cover .ico{font-family:var(--f-display);font-weight:800;font-size:21px;color:var(--ice);opacity:.9;position:relative;z-index:1}
+.mu-cover::after{content:"";position:absolute;inset:4px;border:1px solid rgba(180,215,255,.4);clip-path:inherit}
+.mu-cover .pulse{position:absolute;left:6px;bottom:6px;width:5px;height:5px;border-radius:50%;background:#4ade80;box-shadow:0 0 7px #4ade80;z-index:2;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+.mu-info{flex:1;min-width:0}
+.mu-title{font-family:var(--f-display);font-weight:700;font-size:14px;color:var(--ice);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mu-artist{font-size:10px;color:var(--steel);letter-spacing:.1em;margin-top:2px}
+.mu-state{font-size:8px;color:var(--mist);letter-spacing:.18em;margin-top:3px;text-transform:uppercase}
+.lyric{padding:var(--s2) 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:var(--s2) 0}
+.lyric .ly{font-family:var(--f-cjk);font-size:12px;color:rgba(219,233,251,.4);letter-spacing:.05em;line-height:1.95;text-align:center}
+.lyric .ly.cur{color:#fff;font-weight:500;font-size:13px}
+.lyric .ly.cur::before{content:"▸ ";color:var(--crimson)}
+.mu-bar{display:flex;align-items:center;gap:var(--s2);margin-top:var(--s2)}
+.mu-bar .t{font-family:var(--f-display);font-size:9px;color:var(--mist);font-variant-numeric:tabular-nums;letter-spacing:.05em}
+.mu-track{flex:1;height:4px;background:rgba(140,185,235,.16);position:relative;overflow:visible}
+.mu-track > i{position:absolute;left:0;top:0;bottom:0;width:38%;background:linear-gradient(90deg,var(--steel-d),var(--steel))}
+.mu-track > .pin{position:absolute;left:38%;top:50%;transform:translate(-50%,-50%) rotate(45deg);width:7px;height:7px;background:var(--crimson);box-shadow:0 0 8px var(--crimson)}
+.mu-ctrl{display:flex;justify-content:center;gap:var(--s4);margin-top:var(--s3)}
+.mu-ctrl span{font-family:var(--f-display);font-size:13px;color:var(--steel)}
+.mu-ctrl .play{color:var(--crimson);font-size:16px}
+
+/* ============================================================
+   5 · Dock 栏 — LAUNCH BAY (机体机徽, 非文件夹)
+   每个图标 = 一架 Reginleif/Juggernaut 风格机甲剪影
+   ============================================================ */
+#dock{bottom:34px;left:50%;transform:translateX(-50%);
+  background:none;border:0;box-shadow:none;backdrop-filter:none;clip-path:none;z-index:8}
+.dock-row{display:flex;gap:var(--s6);align-items:flex-end}
+.dock-item{display:flex;flex-direction:column;align-items:center;gap:7px;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.dock-ico{
+  width:52px;height:52px;position:relative;display:flex;align-items:center;justify-content:center;
+  transition:filter .28s,transform .28s;
+}
+/* 机徽底座: 六边形战术框 (机架挂点) */
+.dock-ico .hex{
+  position:absolute;inset:0;
+  background:linear-gradient(160deg, rgba(120,170,230,.18), rgba(14,26,44,.4));
+  border:1px solid var(--stroke);
+  clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);
+  box-shadow:inset 0 0 14px rgba(120,170,230,.12);
+}
+.dock-ico svg{position:relative;z-index:1;width:30px;height:30px}
+.dock-ico svg path,.dock-ico svg polygon,.dock-ico svg line{
+  stroke:var(--steel);stroke-width:1.4;fill:none;stroke-linejoin:round;stroke-linecap:round;
+  transition:stroke .28s;
+}
+.dock-ico svg .fill{fill:rgba(111,168,224,.22);stroke-width:1}
+.dock-lbl{font-family:var(--f-display);font-size:8px;letter-spacing:.2em;color:var(--ice);text-transform:uppercase;text-shadow:0 1px 5px rgba(0,0,0,.8);opacity:.8}
+.dock-id{font-family:var(--f-mono);font-size:6.5px;letter-spacing:.12em;color:var(--steel);opacity:.65}
+/* hover: 上移 + 机徽点亮猩红 */
+.dock-item:hover{transform:translateY(-9px)}
+.dock-item:hover .dock-ico .hex{border-color:var(--stroke-hot);box-shadow:inset 0 0 18px rgba(255,90,80,.25),0 0 16px rgba(255,59,59,.3)}
+.dock-item:hover .dock-ico svg path,
+.dock-item:hover .dock-ico svg polygon,
+.dock-item:hover .dock-ico svg line{stroke:var(--crimson)}
+.dock-item:hover .dock-ico svg .fill{fill:rgba(255,90,80,.25)}
+.dock-item:hover .dock-lbl{opacity:1;color:#fff}
+
+/* ============================================================
+   预览页 chrome (说明条 + 透明度滑块)
+   ============================================================ */
+.preview-hud{
+  position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;gap:var(--s4);
+  padding:7px 16px;background:rgba(5,8,14,.82);border-bottom:1px solid var(--line-2);
+  backdrop-filter:blur(8px);font-family:var(--f-display);
+}
+.preview-hud .h-tag{background:var(--crimson);color:#fff;font-weight:700;font-size:10px;letter-spacing:.15em;padding:2px 8px}
+.preview-hud .h-ttl{color:var(--ice);font-size:12px;letter-spacing:.22em;font-weight:600}
+.preview-hud .h-note{color:var(--mist);font-size:9px;letter-spacing:.08em}
+.preview-hud .glass-ctrl{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--mist);font-size:9px;letter-spacing:.1em}
+.preview-hud input[type=range]{width:120px;accent-color:var(--steel)}
+
+@media (prefers-reduced-motion:reduce){.stage::before,.time .sep,.mu-cover .pulse{animation:none}}
+</style>
+</head>
+<body>
+<div class="preview-hud">
+  <span class="h-tag">86</span>
+  <span class="h-ttl">EIGHTY-SIX · DESKTOP SUITE</span>
+  <span class="h-note">v4 · 透明毛玻璃 · 时钟纯白 · Dock 机体机徽 · 五组件</span>
+  <span class="glass-ctrl">面板透明度
+    <input type="range" min="0" max="60" value="26" oninput="document.documentElement.style.setProperty('--glass-opacity', this.value/100); document.getElementById('gv').textContent=this.value+'%'">
+    <span id="gv">26%</span>
+  </span>
+</div>
+
+<div class="stage">
+  <div class="wp-figure"></div>
+  <div class="stage-grid"></div>
+
+  <!-- ========== 1 · 硬件状态 (花名册) ========== -->
+  <section class="panel" id="roster">
+    <span class="corner tl"></span><span class="corner br"></span>
+    <div class="p-head">
+      <span class="tag">S-1</span>
+      <span class="ttl">System Roster</span>
+      <span class="sub">// ALL UNITS ONLINE</span>
+    </div>
+    <div class="p-body" style="padding:8px 10px 10px">
+      <table class="roster-table">
+        <thead><tr><th>NO</th><th>UNIT</th><th>LOAD</th><th class="num">VAL</th><th class="num">RATE</th><th>STA</th></tr></thead>
+        <tbody>
+          <tr><td>001</td><td class="rt-name">CPU CORE</td><td><div class="bar"><i style="--w:34%"></i></div></td><td class="num"><span class="rt-val">34</span><span class="rt-unit">%</span></td><td class="num up">3.8<span class="rt-unit">GHz</span></td><td><span class="arrow up">▲</span></td></tr>
+          <tr><td>002</td><td class="rt-name">MEMORY</td><td><div class="bar"><i style="--w:62%"></i></div></td><td class="num"><span class="rt-val">62</span><span class="rt-unit">%</span></td><td class="num">9.9<span class="rt-unit">GB</span></td><td><span class="arrow">—</span></td></tr>
+          <tr class="row-dead"><td>003</td><td class="rt-name">DISK C:\</td><td><div class="bar warn"><i style="--w:91%"></i></div></td><td class="num"><span class="rt-val">91</span><span class="rt-unit">%</span></td><td class="num">—</td><td><span class="arrow down">▼</span></td><div class="destroyed">CRITICAL</div></tr>
+          <tr><td>004</td><td class="rt-name">GPU</td><td><div class="bar"><i style="--w:18%"></i></div></td><td class="num"><span class="rt-val">18</span><span class="rt-unit">%</span></td><td class="num">54<span class="rt-unit">°C</span></td><td><span class="arrow up">▲</span></td></tr>
+          <tr><td>005</td><td class="rt-name">NET ↓DN</td><td><div class="bar"><i style="--w:28%"></i></div></td><td class="num"><span class="rt-val">2.4</span><span class="rt-unit">MB</span></td><td class="num up">↓</td><td><span class="arrow up">▲</span></td></tr>
+          <tr><td>006</td><td class="rt-name">NET ↑UP</td><td><div class="bar"><i style="--w:11%"></i></div></td><td class="num"><span class="rt-val">340</span><span class="rt-unit">KB</span></td><td class="num">↑</td><td><span class="arrow">—</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ========== 2 · 时钟 (中央 signature, 纯白) ========== -->
+  <section class="panel" id="clock">
+    <div class="clock-meta"><span class="mark"></span><span class="ln"></span>CHRONOS — WEEK 24<span class="ln"></span><span class="mark"></span></div>
+    <div class="time">15<span class="sep">:</span>00<span class="sec">26</span></div>
+    <div class="clock-sub"><span class="date">SUN · JUN 14 2026</span><span class="cjk">星期日</span></div>
+    <div class="clock-status"><span class="dot"></span> SYSTEM NOMINAL · D-165 / 365</div>
+  </section>
+
+  <!-- ========== 3 · 日历 ========== -->
+  <section class="panel" id="calendar">
+    <span class="corner tl"></span><span class="corner br"></span>
+    <div class="p-head"><span class="tag">WK</span><span class="ttl">Calendar</span><span class="sub">// 2026.06</span></div>
+    <div class="p-body">
+      <div class="cal-top"><span class="cal-mon">JUN</span><span class="cal-yr">2026</span><span class="cal-cjk">六月</span></div>
+      <div class="cal-grid">
+        <span class="wk sun">S</span><span class="wk">M</span><span class="wk">T</span><span class="wk">W</span><span class="wk">T</span><span class="wk">F</span><span class="wk">S</span>
+        <span class="d dim">31</span><span class="d">1</span><span class="d">2</span><span class="d">3</span><span class="d">4</span><span class="d">5</span><span class="d">6</span>
+        <span class="d">7</span><span class="d">8</span><span class="d">9</span><span class="d">10</span><span class="d">11</span><span class="d">12</span><span class="d">13</span>
+        <span class="d today">14</span><span class="d">15</span><span class="d">16</span><span class="d">17</span><span class="d">18</span><span class="d">19</span><span class="d">20</span>
+        <span class="d">21</span><span class="d">22</span><span class="d">23</span><span class="d">24</span><span class="d">25</span><span class="d">26</span><span class="d">27</span>
+        <span class="d">28</span><span class="d">29</span><span class="d">30</span><span class="d dim">1</span><span class="d dim">2</span><span class="d dim">3</span><span class="d dim">4</span>
+      </div>
+      <div class="year-bar"><div class="lbl"><span>ANNUAL PROGRESS</span><span>45.2%</span></div><div class="track"><i></i></div></div>
+    </div>
+  </section>
+
+  <!-- ========== 4 · 音乐歌词 ========== -->
+  <section class="panel" id="music">
+    <span class="corner tl"></span><span class="corner br"></span>
+    <div class="p-head"><span class="tag">M</span><span class="ttl">Media · Para-Raid</span><span class="sub">// SYNC ACTIVE</span></div>
+    <div class="p-body">
+      <div class="mu-top">
+        <div class="mu-cover"><span class="pulse"></span><span class="ico">86</span></div>
+        <div class="mu-info">
+          <div class="mu-title">3-pun 29-byou</div>
+          <div class="mu-artist">SawanoHiroyuki[nZk]</div>
+          <div class="mu-state">▶ NOW PLAYING · 86 OP</div>
+        </div>
+      </div>
+      <div class="lyric">
+        <div class="ly">交わした言葉 数えきれない</div>
+        <div class="ly cur">この空の下で 君と生きてる</div>
+        <div class="ly">忘れないよ あの日の約束を</div>
+      </div>
+      <div class="mu-bar"><span class="t">1:21</span><div class="mu-track"><i></i><span class="pin"></span></div><span class="t">3:29</span></div>
+      <div class="mu-ctrl"><span>◀◀</span><span class="play">▶</span><span>▶▶</span></div>
+    </div>
+  </section>
+
+  <!-- ========== 5 · Dock 栏 (机体机徽) ========== -->
+  <section class="panel" id="dock">
+    <div class="dock-row">
+      <!-- Undertaker: 镰刀机甲 (Shin) -->
+      <div class="dock-item"><div class="dock-ico"><span class="hex"></span>
+        <svg viewBox="0 0 32 32"><polygon class="fill" points="16,3 26,10 23,24 9,24 6,10"/><line x1="16" y1="3" x2="16" y2="11"/><path d="M9 24 L4 30 M23 24 L28 30"/><path d="M11 14 L21 14 M13 18 L19 18"/></svg>
+      </div><div class="dock-lbl">Undertaker</div><div class="dock-id">RGL-01</div></div>
+      <!-- Black Dog: 突击机甲 (Raiden) -->
+      <div class="dock-item"><div class="dock-ico"><span class="hex"></span>
+        <svg viewBox="0 0 32 32"><path class="fill" d="M16 4 L25 11 L25 22 L16 28 L7 22 L7 11 Z"/><path d="M16 4 L16 28 M7 11 L25 22 M25 11 L7 22"/></svg>
+      </div><div class="dock-lbl">Black Dog</div><div class="dock-id">RGL-02</div></div>
+      <!-- Gun Snake: 狙击机甲 (Theo) -->
+      <div class="dock-item"><div class="dock-ico"><span class="hex"></span>
+        <svg viewBox="0 0 32 32"><polygon class="fill" points="16,4 24,9 24,23 16,28 8,23 8,9"/><line x1="16" y1="4" x2="16" y2="28"/><path d="M4 16 L28 16"/><circle cx="16" cy="16" r="4" style="fill:none"/></svg>
+      </div><div class="dock-lbl">Gun Snake</div><div class="dock-id">RGL-03</div></div>
+      <!-- Laughing Fox: 侦察机甲 (Kurena) -->
+      <div class="dock-item"><div class="dock-ico"><span class="hex"></span>
+        <svg viewBox="0 0 32 32"><path class="fill" d="M16 5 L27 13 L22 27 L10 27 L5 13 Z"/><path d="M16 5 L11 13 L16 20 L21 13 Z"/><path d="M10 27 L7 31 M22 27 L25 31"/></svg>
+      </div><div class="dock-lbl">Laughing Fox</div><div class="dock-id">RGL-04</div></div>
+      <!-- Snow Witch: 指挥机甲 (Anju) -->
+      <div class="dock-item"><div class="dock-ico"><span class="hex"></span>
+        <svg viewBox="0 0 32 32"><polygon class="fill" points="16,3 22,9 22,16 16,29 10,16 10,9"/><path d="M16 3 L16 29 M10 9 L22 9"/><path d="M6 13 L10 16 M26 13 L22 16"/></svg>
+      </div><div class="dock-lbl">Snow Witch</div><div class="dock-id">RGL-05</div></div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
