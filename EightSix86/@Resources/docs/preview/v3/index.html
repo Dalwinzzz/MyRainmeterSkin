@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EIGHTY-SIX · 雨滴主题 v3 预览</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700;800&family=Chakra+Petch:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   EIGHTY-SIX · 设计系统 (冻结的 design tokens)
+   脸: 瑞士国际主义 × 军用制式 — 冷蓝统治 + 猩红强调
+   ============================================================ */
+:root{
+  /* --- 5 色板 --- */
+  --paper:   #e8eef4;   /* 纸蓝白底 (花名册底) */
+  --ink:     #0d1b2a;   /* 墨蓝近黑 (主文字) */
+  --steel:   #2f6db0;   /* 钢蓝 (主色,线条/编号) */
+  --steel-d: #1b3a5c;   /* 深钢蓝 */
+  --mist:    #8aa2bb;   /* 雾蓝灰 (次要文字/分隔) */
+  --crimson: #d4202a;   /* 猩红 (唯一强调 — DESTROYED/警告) */
+
+  /* --- 派生 --- */
+  --line:    rgba(43,108,176,.30);   /* 网格/分隔线 */
+  --line-2:  rgba(43,108,176,.55);
+  --glow:    rgba(120,180,240,.55);
+  --paper-t: rgba(220,232,244,.86);  /* 半透明面板底(叠壁纸) */
+  --panel-stroke: rgba(140,180,225,.45);
+
+  /* --- 间距 4/8 栅格 --- */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px;
+
+  /* --- 字体 --- */
+  --f-display:'Oxanium', 'Chakra Petch', sans-serif;  /* 数字/大标题 */
+  --f-mono:'Chakra Petch','Oxanium', monospace;        /* 标签/表格 */
+  --f-cjk:'Noto Sans SC', sans-serif;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:var(--f-mono);
+  background:#060a10;
+  color:var(--ink);
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ============================================================
+   桌面舞台 — 模拟雨滴皮肤叠在壁纸上
+   ============================================================ */
+.stage{
+  position:relative;
+  width:100%;
+  min-height:100vh;
+  /* 壁纸: 黄昏铁道蓝紫渐变 + 氛围,非纯色 */
+  background:
+    radial-gradient(120% 80% at 50% 105%, rgba(255,180,120,.22), transparent 55%),
+    radial-gradient(90% 70% at 50% 100%, rgba(255,120,90,.18), transparent 50%),
+    linear-gradient(180deg, #1a2438 0%, #243150 30%, #3a4368 55%, #5a5a78 75%, #8a7088 100%);
+  overflow:hidden;
+}
+/* 雨丝 + 噪点质感层 */
+.stage::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:
+    repeating-linear-gradient(105deg, transparent 0 7px, rgba(255,255,255,.04) 7px 8px);
+  opacity:.5; mix-blend-mode:screen;
+  animation:rain 6s linear infinite;
+}
+@keyframes rain{from{background-position:0 0}to{background-position:-120px 700px}}
+.stage::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(140% 100% at 50% 40%, transparent 55%, rgba(0,0,0,.45));
+}
+
+/* 全局坐标网格 (battle_field 蓝网格 DNA) — 极淡 */
+.stage-grid{
+  position:absolute;inset:0;pointer-events:none;z-index:1;opacity:.10;
+  background-image:
+    linear-gradient(rgba(150,200,255,.6) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(150,200,255,.6) 1px, transparent 1px);
+  background-size:48px 48px;
+}
+
+/* ============================================================
+   通用面板 — 军用制式: 切角 + 编号头 + 角标
+   ============================================================ */
+.panel{
+  position:absolute;z-index:5;
+  background:linear-gradient(180deg, var(--paper-t), rgba(208,222,238,.80));
+  border:1px solid var(--panel-stroke);
+  backdrop-filter:blur(3px) saturate(1.1);
+  box-shadow:0 8px 40px rgba(8,18,32,.45), inset 0 1px 0 rgba(255,255,255,.5);
+  /* 左上 + 右下 切角 — 军用制式 */
+  clip-path:polygon(0 10px, 10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+}
+/* 面板头条: 编号 + 标题 */
+.p-head{
+  display:flex;align-items:center;gap:var(--s2);
+  padding:6px var(--s3);
+  background:linear-gradient(90deg, var(--steel-d), rgba(27,58,92,.0));
+  border-bottom:1px solid var(--line-2);
+}
+.p-head .tag{
+  font-family:var(--f-display);font-weight:700;font-size:10px;letter-spacing:.12em;
+  color:#bfe0ff;background:var(--crimson);padding:1px 6px;
+  /* 切角小标签 */
+  clip-path:polygon(0 0,100% 0,100% 100%,4px 100%,0 calc(100% - 4px));
+}
+.p-head .tag.blue{background:var(--steel)}
+.p-head .ttl{
+  font-family:var(--f-display);font-weight:600;font-size:11px;letter-spacing:.22em;
+  color:#eaf3ff;text-transform:uppercase;
+}
+.p-head .sub{
+  margin-left:auto;font-size:9px;letter-spacing:.18em;color:#9cc4ee;font-weight:500;
+}
+.p-body{padding:var(--s3)}
+
+/* 角装饰 — HUD 四角括号 */
+.corner{position:absolute;width:9px;height:9px;border:1.5px solid var(--steel);z-index:6;opacity:.8}
+.corner.tl{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.corner.br{bottom:-1px;right:-1px;border-left:0;border-top:0}
+
+/* ============================================================
+   1 · 硬件状态 — SYSTEM ROSTER (花名册! 86 核心界面)
+   ============================================================ */
+#roster{top:24px;left:24px;width:432px}
+.roster-table{width:100%;border-collapse:collapse;font-family:var(--f-mono)}
+.roster-table th{
+  font-size:8.5px;font-weight:600;letter-spacing:.1em;color:var(--steel);
+  text-align:left;padding:3px 6px;text-transform:uppercase;
+  border-bottom:1px solid var(--line-2);
+}
+.roster-table th.num,.roster-table td.num{text-align:right;font-variant-numeric:tabular-nums}
+.roster-table td{
+  font-size:11px;padding:5px 6px;color:var(--ink);
+  border-bottom:1px solid var(--line);font-weight:500;
+}
+.roster-table tr td:first-child{
+  font-family:var(--f-display);font-weight:700;color:var(--steel-d);
+  font-size:10px;letter-spacing:.06em;width:34px;
+}
+.rt-name{font-family:var(--f-display);font-weight:600;letter-spacing:.04em}
+.rt-val{font-family:var(--f-display);font-weight:700;font-variant-numeric:tabular-nums;font-size:12px}
+.rt-unit{font-size:8px;color:var(--mist);font-weight:400;margin-left:1px}
+/* 进度条单元 — POWER 列 */
+.bar{position:relative;height:5px;background:rgba(43,108,176,.18);border-radius:1px;overflow:hidden;min-width:54px}
+.bar > i{position:absolute;inset:0;width:var(--w,40%);background:linear-gradient(90deg,var(--steel),#5fa0e0);box-shadow:0 0 6px var(--glow)}
+.bar.warn > i{background:linear-gradient(90deg,var(--crimson),#ff5a4a)}
+.up{color:var(--steel)} .down{color:var(--crimson)}
+.arrow{font-size:9px}
+/* signature: 阵亡行 DESTROYED 斜压 */
+.row-dead td{color:rgba(13,27,42,.35)}
+.row-dead{position:relative}
+.destroyed{
+  position:absolute;left:48px;top:50%;transform:translateY(-50%) skewX(-12deg);
+  font-family:var(--f-display);font-weight:800;font-size:13px;letter-spacing:.32em;
+  color:var(--crimson);opacity:.92;text-shadow:0 0 12px rgba(212,32,42,.5);
+  pointer-events:none;white-space:nowrap;
+}
+
+/* ============================================================
+   2 · 时钟 — CHRONOS (中央主视觉 = signature)
+   ============================================================ */
+#clock{top:48%;left:50%;transform:translate(-50%,-50%);width:620px;text-align:center;
+  background:none;border:0;box-shadow:none;backdrop-filter:none;clip-path:none;z-index:8}
+/* 时钟背后的制式扫描框 — 让中央成为真正的 signature */
+#clock::before{
+  content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:540px;height:230px;z-index:-1;pointer-events:none;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  background:
+    linear-gradient(90deg, transparent, rgba(120,180,240,.05) 50%, transparent),
+    repeating-linear-gradient(0deg, transparent 0 5px, rgba(120,180,240,.04) 5px 6px);
+}
+.clock-meta{
+  display:flex;align-items:center;justify-content:center;gap:var(--s3);
+  font-family:var(--f-display);font-size:10px;letter-spacing:.4em;color:#cfe2f7;
+  text-transform:uppercase;margin-bottom:var(--s3);text-shadow:0 1px 8px rgba(0,0,0,.6);
+}
+.clock-meta .mark{width:5px;height:5px;background:var(--crimson);transform:rotate(45deg);box-shadow:0 0 8px var(--crimson)}
+.clock-meta .ln{width:60px;height:1px;background:linear-gradient(90deg,transparent,#cfe2f7,transparent)}
+.time{
+  font-family:var(--f-display);font-weight:300;font-size:142px;line-height:.86;
+  color:#fff;letter-spacing:.005em;font-variant-numeric:tabular-nums;
+  text-shadow:0 2px 50px rgba(80,140,220,.65),0 0 2px rgba(255,255,255,.4);
+}
+.time .sep{color:var(--crimson);opacity:.95;margin:0 2px;text-shadow:0 0 24px rgba(212,32,42,.7)}
+.time .sec{font-size:48px;font-weight:400;color:#9cc4ee;vertical-align:super;letter-spacing:.04em}
+.clock-sub{
+  margin-top:var(--s3);display:flex;align-items:center;justify-content:center;gap:var(--s5);
+  font-family:var(--f-display);letter-spacing:.16em;
+}
+.clock-sub .date{font-size:14px;color:#eaf3ff;font-weight:500;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.clock-sub .cjk{font-family:var(--f-cjk);font-size:12px;color:#bcd6f2;letter-spacing:.3em}
+.clock-status{
+  margin-top:var(--s4);display:inline-flex;align-items:center;gap:var(--s2);
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.28em;color:#9cc4ee;
+  border:1px solid var(--line-2);padding:3px 12px;
+  clip-path:polygon(0 0,100% 0,100% 100%,6px 100%,0 calc(100% - 6px));
+}
+.clock-status .dot{width:5px;height:5px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80}
+
+/* ============================================================
+   3 · 日历 — CALENDAR / WEEK ALLOCATION
+   ============================================================ */
+#calendar{top:24px;right:24px;width:300px}
+.cal-top{display:flex;align-items:baseline;gap:var(--s2);margin-bottom:var(--s3)}
+.cal-mon{font-family:var(--f-display);font-weight:800;font-size:34px;color:var(--steel-d);line-height:1;letter-spacing:.02em}
+.cal-yr{font-family:var(--f-display);font-size:12px;color:var(--mist);letter-spacing:.2em;font-weight:600}
+.cal-cjk{margin-left:auto;font-family:var(--f-cjk);font-size:11px;color:var(--steel);letter-spacing:.2em;align-self:center}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-grid .wk{font-size:8px;text-align:center;color:var(--mist);font-weight:600;letter-spacing:.05em;padding-bottom:3px}
+.cal-grid .wk.sun{color:var(--crimson)}
+.cal-grid .d{
+  font-family:var(--f-display);font-size:11px;text-align:center;padding:4px 0;color:var(--ink);
+  font-variant-numeric:tabular-nums;font-weight:500;position:relative;
+}
+.cal-grid .d.dim{color:rgba(13,27,42,.28)}
+.cal-grid .d.today{color:#fff;font-weight:700}
+.cal-grid .d.today::before{
+  content:"";position:absolute;inset:1px 3px;background:var(--crimson);z-index:-1;
+  clip-path:polygon(0 0,100% 0,100% 100%,4px 100%,0 calc(100% - 4px));
+  box-shadow:0 0 10px rgba(212,32,42,.5);
+}
+/* 年度进度 */
+.year-bar{margin-top:var(--s4);padding-top:var(--s3);border-top:1px solid var(--line)}
+.year-bar .lbl{display:flex;justify-content:space-between;font-size:8.5px;color:var(--steel);letter-spacing:.1em;margin-bottom:4px;font-weight:600}
+.year-bar .track{height:4px;background:rgba(43,108,176,.18);position:relative;overflow:hidden}
+.year-bar .track > i{position:absolute;inset:0;width:45%;background:linear-gradient(90deg,var(--steel),#5fa0e0);box-shadow:0 0 6px var(--glow)}
+.year-bar .track > i::after{content:"";position:absolute;right:-1px;top:-2px;width:2px;height:8px;background:var(--crimson);box-shadow:0 0 6px var(--crimson)}
+
+/* ============================================================
+   4 · 音乐歌词 — MEDIA / PARA-RAID SYNC
+   ============================================================ */
+#music{bottom:24px;left:24px;width:432px}
+.mu-top{display:flex;gap:var(--s3);align-items:center;margin-bottom:var(--s3)}
+.mu-cover{
+  width:54px;height:54px;flex:none;position:relative;
+  background:linear-gradient(135deg,var(--steel-d),var(--steel));
+  clip-path:polygon(0 8px,8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%);
+  display:flex;align-items:center;justify-content:center;
+}
+.mu-cover .ico{font-family:var(--f-display);font-weight:800;font-size:20px;color:#bfe0ff;opacity:.85;position:relative;z-index:1}
+.mu-cover::after{content:"";position:absolute;inset:4px;border:1px solid rgba(191,224,255,.45);clip-path:inherit}
+/* 播放时左下角的脉冲点 */
+.mu-cover .pulse{position:absolute;left:5px;bottom:5px;width:5px;height:5px;border-radius:50%;background:#4ade80;box-shadow:0 0 7px #4ade80;z-index:2;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+.mu-info{flex:1;min-width:0}
+.mu-title{font-family:var(--f-display);font-weight:700;font-size:14px;color:var(--ink);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mu-artist{font-size:10px;color:var(--steel);letter-spacing:.1em;margin-top:2px}
+.mu-state{font-size:8px;color:var(--mist);letter-spacing:.18em;margin-top:3px;text-transform:uppercase}
+/* 歌词 */
+.lyric{padding:var(--s2) 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:var(--s2) 0}
+.lyric .ly{font-family:var(--f-cjk);font-size:12px;color:rgba(13,27,42,.4);letter-spacing:.05em;line-height:1.9;text-align:center}
+.lyric .ly.cur{color:var(--ink);font-weight:500;font-size:13px}
+.lyric .ly.cur::before{content:"▸ ";color:var(--crimson)}
+/* 进度 */
+.mu-bar{display:flex;align-items:center;gap:var(--s2);margin-top:var(--s2)}
+.mu-bar .t{font-family:var(--f-display);font-size:9px;color:var(--mist);font-variant-numeric:tabular-nums;letter-spacing:.05em}
+.mu-track{flex:1;height:4px;background:rgba(43,108,176,.18);position:relative;overflow:visible}
+.mu-track > i{position:absolute;left:0;top:0;bottom:0;width:38%;background:linear-gradient(90deg,var(--steel),#5fa0e0)}
+.mu-track > .pin{position:absolute;left:38%;top:50%;transform:translate(-50%,-50%) rotate(45deg);width:7px;height:7px;background:var(--crimson);box-shadow:0 0 8px var(--crimson)}
+.mu-ctrl{display:flex;justify-content:center;gap:var(--s4);margin-top:var(--s3)}
+.mu-ctrl span{font-family:var(--f-display);font-size:13px;color:var(--steel);cursor:default}
+.mu-ctrl .play{color:var(--crimson);font-size:16px}
+
+/* ============================================================
+   5 · Dock 栏 — LAUNCH BAY
+   ============================================================ */
+#dock{bottom:30px;left:50%;transform:translateX(-50%);
+  background:none;border:0;box-shadow:none;backdrop-filter:none;clip-path:none;z-index:8}
+.dock-row{display:flex;gap:var(--s5);align-items:flex-end}
+.dock-item{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:default;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+.dock-ico{
+  width:48px;height:48px;position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  background:
+    repeating-linear-gradient(135deg, transparent 0 5px, rgba(43,108,176,.10) 5px 6px),
+    linear-gradient(180deg,rgba(224,236,248,.9),rgba(176,202,230,.72));
+  border:1px solid var(--panel-stroke);
+  clip-path:polygon(0 9px,9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%);
+  box-shadow:0 6px 20px rgba(8,18,32,.4),inset 0 1px 0 rgba(255,255,255,.6);
+  transition:border-color .25s, box-shadow .25s, background .25s;
+}
+/* 图标内顶部色条 — 制式识别色 */
+.dock-ico::before{content:"";position:absolute;top:0;left:9px;right:0;height:3px;background:var(--steel);opacity:.85}
+.dock-ico .gl{font-family:var(--f-display);font-weight:800;font-size:19px;color:var(--steel-d);letter-spacing:.02em;position:relative;z-index:1}
+/* hover 浮现的角括号 */
+.dock-ico .bk{position:absolute;width:7px;height:7px;border:1.5px solid var(--crimson);opacity:0;transition:opacity .25s;z-index:2}
+.dock-ico .bk.a{top:3px;left:3px;border-right:0;border-bottom:0}
+.dock-ico .bk.b{bottom:3px;right:3px;border-left:0;border-top:0}
+.dock-item:hover .dock-ico .bk{opacity:1}
+.dock-item:hover .dock-ico::before{background:var(--crimson)}
+.dock-lbl{font-family:var(--f-display);font-size:7.5px;letter-spacing:.18em;color:#cfe2f7;text-transform:uppercase;text-shadow:0 1px 4px rgba(0,0,0,.7);opacity:.85}
+.dock-id{font-family:var(--f-mono);font-size:6.5px;letter-spacing:.1em;color:var(--steel);opacity:.7}
+/* 5 个 Spearhead 个人 mark */
+.dock-item:hover{transform:translateY(-8px)}
+.dock-item:hover .dock-ico{border-color:var(--crimson);box-shadow:0 10px 28px rgba(212,32,42,.35),0 0 0 1px var(--crimson)}
+.dock-item:hover .dock-lbl{opacity:1;color:#fff}
+
+/* ============================================================
+   预览页 HUD chrome (页面顶部说明,非组件)
+   ============================================================ */
+.preview-hud{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  display:flex;align-items:center;gap:var(--s4);
+  padding:6px 16px;background:rgba(6,10,16,.85);
+  border-bottom:1px solid var(--line-2);backdrop-filter:blur(8px);
+  font-family:var(--f-display);
+}
+.preview-hud .h-tag{background:var(--crimson);color:#fff;font-weight:700;font-size:10px;letter-spacing:.15em;padding:2px 8px}
+.preview-hud .h-ttl{color:#eaf3ff;font-size:12px;letter-spacing:.22em;font-weight:600}
+.preview-hud .h-sub{color:#8aa2bb;font-size:10px;letter-spacing:.1em;margin-left:auto;font-family:var(--f-mono)}
+.preview-hud .h-note{color:#9cc4ee;font-size:9px;letter-spacing:.08em}
+
+@media (prefers-reduced-motion:reduce){
+  .stage::before,.mu-cover .ring{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="preview-hud">
+  <span class="h-tag">86</span>
+  <span class="h-ttl">EIGHTY-SIX · DESKTOP SUITE</span>
+  <span class="h-note">v3 重做 · 亮蓝白军用花名册 + 猩红强调 · 五组件</span>
+  <span class="h-sub">// PREVIEW BUILD — 静态渲染,数据为示意</span>
+</div>
+
+<div class="stage">
+  <div class="stage-grid"></div>
+
+  <!-- ========== 1 · 硬件状态 (花名册) ========== -->
+  <section class="panel" id="roster">
+    <span class="corner tl"></span><span class="corner br"></span>
+    <div class="p-head">
+      <span class="tag blue">S-1</span>
+      <span class="ttl">System Roster</span>
+      <span class="sub">// ALL UNITS ONLINE</span>
+    </div>
+    <div class="p-body" style="padding:8px 10px 10px">
+      <table class="roster-table">
+        <thead><tr>
+          <th>NO</th><th>UNIT</th><th>LOAD</th><th class="num">VAL</th><th class="num">RATE</th><th>STA</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td>001</td><td class="rt-name">CPU CORE</td>
+            <td><div class="bar"><i style="--w:34%"></i></div></td>
+            <td class="num"><span class="rt-val">34</span><span class="rt-unit">%</span></td>
+            <td class="num up">3.8<span class="rt-unit">GHz</span></td>
+            <td><span class="arrow up">▲</span></td>
+          </tr>
+          <tr>
+            <td>002</td><td class="rt-name">MEMORY</td>
+            <td><div class="bar"><i style="--w:62%"></i></div></td>
+            <td class="num"><span class="rt-val">62</span><span class="rt-unit">%</span></td>
+            <td class="num">9.9<span class="rt-unit">GB</span></td>
+            <td><span class="arrow">—</span></td>
+          </tr>
+          <tr class="row-dead">
+            <td>003</td><td class="rt-name">DISK C:\</td>
+            <td><div class="bar warn"><i style="--w:91%"></i></div></td>
+            <td class="num"><span class="rt-val">91</span><span class="rt-unit">%</span></td>
+            <td class="num">—</td>
+            <td><span class="arrow down">▼</span></td>
+            <div class="destroyed">CRITICAL</div>
+          </tr>
+          <tr>
+            <td>004</td><td class="rt-name">GPU</td>
+            <td><div class="bar"><i style="--w:18%"></i></div></td>
+            <td class="num"><span class="rt-val">18</span><span class="rt-unit">%</span></td>
+            <td class="num">54<span class="rt-unit">°C</span></td>
+            <td><span class="arrow up">▲</span></td>
+          </tr>
+          <tr>
+            <td>005</td><td class="rt-name">NET ↓DN</td>
+            <td><div class="bar"><i style="--w:28%"></i></div></td>
+            <td class="num"><span class="rt-val">2.4</span><span class="rt-unit">MB</span></td>
+            <td class="num up">↓</td>
+            <td><span class="arrow up">▲</span></td>
+          </tr>
+          <tr>
+            <td>006</td><td class="rt-name">NET ↑UP</td>
+            <td><div class="bar"><i style="--w:11%"></i></div></td>
+            <td class="num"><span class="rt-val">340</span><span class="rt-unit">KB</span></td>
+            <td class="num">↑</td>
+            <td><span class="arrow">—</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ========== 2 · 时钟 (中央主视觉) ========== -->
+  <section class="panel" id="clock">
+    <div class="clock-meta">
+      <span class="mark"></span><span class="ln"></span>
+      CHRONOS — WEEK 24
+      <span class="ln"></span><span class="mark"></span>
+    </div>
+    <div class="time">15<span class="sep">:</span>00<span class="sec">26</span></div>
+    <div class="clock-sub">
+      <span class="date">SUN · JUN 14 2026</span>
+      <span class="cjk">星期日</span>
+    </div>
+    <div class="clock-status"><span class="dot"></span> SYSTEM NOMINAL · D-165 / 365</div>
+  </section>
+
+  <!-- ========== 3 · 日历 ========== -->
+  <section class="panel" id="calendar">
+    <span class="corner tl"></span><span class="corner br"></span>
+    <div class="p-head">
+      <span class="tag">WK</span>
+      <span class="ttl">Calendar</span>
+      <span class="sub">// 2026.06</span>
+    </div>
+    <div class="p-body">
+      <div class="cal-top">
+        <span class="cal-mon">JUN</span>
+        <span class="cal-yr">2026</span>
+        <span class="cal-cjk">六月</span>
+      </div>
+      <div class="cal-grid">
+        <span class="wk sun">S</span><span class="wk">M</span><span class="wk">T</span><span class="wk">W</span><span class="wk">T</span><span class="wk">F</span><span class="wk">S</span>
+        <span class="d dim">31</span><span class="d">1</span><span class="d">2</span><span class="d">3</span><span class="d">4</span><span class="d">5</span><span class="d">6</span>
+        <span class="d">7</span><span class="d">8</span><span class="d">9</span><span class="d">10</span><span class="d">11</span><span class="d">12</span><span class="d">13</span>
+        <span class="d today">14</span><span class="d">15</span><span class="d">16</span><span class="d">17</span><span class="d">18</span><span class="d">19</span><span class="d">20</span>
+        <span class="d">21</span><span class="d">22</span><span class="d">23</span><span class="d">24</span><span class="d">25</span><span class="d">26</span><span class="d">27</span>
+        <span class="d">28</span><span class="d">29</span><span class="d">30</span><span class="d dim">1</span><span class="d dim">2</span><span class="d dim">3</span><span class="d dim">4</span>
+      </div>
+      <div class="year-bar">
+        <div class="lbl"><span>ANNUAL PROGRESS</span><span>45.2%</span></div>
+        <div class="track"><i></i></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 4 · 音乐歌词 ========== -->
+  <section class="panel" id="music">
+    <span class="corner tl"></span><span class="corner br"></span>
+    <div class="p-head">
+      <span class="tag blue">M</span>
+      <span class="ttl">Media · Para-Raid</span>
+      <span class="sub">// SYNC ACTIVE</span>
+    </div>
+    <div class="p-body">
+      <div class="mu-top">
+        <div class="mu-cover"><span class="pulse"></span><span class="ico">86</span></div>
+        <div class="mu-info">
+          <div class="mu-title">3-pun 29-byou</div>
+          <div class="mu-artist">SawanoHiroyuki[nZk]</div>
+          <div class="mu-state">▶ NOW PLAYING · 86 OP</div>
+        </div>
+      </div>
+      <div class="lyric">
+        <div class="ly">交わした言葉 数えきれない</div>
+        <div class="ly cur">この空の下で 君と生きてる</div>
+        <div class="ly">忘れないよ あの日の約束を</div>
+      </div>
+      <div class="mu-bar">
+        <span class="t">1:21</span>
+        <div class="mu-track"><i></i><span class="pin"></span></div>
+        <span class="t">3:29</span>
+      </div>
+      <div class="mu-ctrl"><span>◀◀</span><span class="play">▶</span><span>▶▶</span></div>
+    </div>
+  </section>
+
+  <!-- ========== 5 · Dock 栏 ========== -->
+  <section class="panel" id="dock">
+    <div class="dock-row">
+      <div class="dock-item"><div class="dock-ico"><span class="bk a"></span><span class="bk b"></span><span class="gl">UT</span></div><div class="dock-lbl">Undertaker</div><div class="dock-id">RGL-01</div></div>
+      <div class="dock-item"><div class="dock-ico"><span class="bk a"></span><span class="bk b"></span><span class="gl">BD</span></div><div class="dock-lbl">Black Dog</div><div class="dock-id">RGL-02</div></div>
+      <div class="dock-item"><div class="dock-ico"><span class="bk a"></span><span class="bk b"></span><span class="gl">GS</span></div><div class="dock-lbl">Gun Snake</div><div class="dock-id">RGL-03</div></div>
+      <div class="dock-item"><div class="dock-ico"><span class="bk a"></span><span class="bk b"></span><span class="gl">LF</span></div><div class="dock-lbl">Laughing Fox</div><div class="dock-id">RGL-04</div></div>
+      <div class="dock-item"><div class="dock-ico"><span class="bk a"></span><span class="bk b"></span><span class="gl">SW</span></div><div class="dock-lbl">Snow Witch</div><div class="dock-id">RGL-05</div></div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
